@@ -137,7 +137,7 @@ export default function Compartilhar({ posicao, familia, cor }) {
 
   return (
     <div className="cartao p-5">
-      <h3 className="font-serif text-xl">Mostrar para alguém</h3>
+      <h3 className="subtitulo text-xl">Mostrar para alguém</h3>
       <p className="mt-1 text-sm text-grafia">
         A imagem sai no formato do feed, com seu número e os dois eixos que o formam.
       </p>

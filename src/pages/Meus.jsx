@@ -19,7 +19,7 @@ export default function Meus() {
   return (
     <div className="mx-auto max-w-2xl px-6 py-12">
       <div className="mb-8 flex items-baseline justify-between">
-        <h1 className="font-serif text-3xl">Seus resultados</h1>
+        <h1 className="titulo text-3xl">Seus resultados</h1>
         <button onClick={sair} className="text-xs text-grafia hover:text-tinta">sair</button>
       </div>
       <p className="mb-6 text-sm text-grafia">{email}</p>

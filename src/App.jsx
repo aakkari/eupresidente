@@ -14,14 +14,16 @@ export default function App() {
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-borda">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
-          <Link to="/" className="font-serif text-lg">Eu Presidente</Link>
-          <nav className="flex items-center gap-4 text-xs text-grafia">
-            <Link to={token ? '/meus' : '/entrar'} className="hover:text-tinta">
-              {token ? 'meus resultados' : 'entrar'}
+      <header className="sticky top-0 z-20 border-b border-borda bg-papel/85 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <Link to="/" className="text-[15px] font-semibold tracking-apertado">
+            Eu Presidente
+          </Link>
+          <nav className="flex items-center gap-2">
+            <Link to={token ? '/conta' : '/entrar'}
+                  className="rounded-full border border-borda bg-white px-4 py-2 text-xs font-medium transition hover:border-tinta">
+              Minha conta
             </Link>
-            <Link to="/admin" className="hover:text-tinta">admin</Link>
           </nav>
         </div>
       </header>
@@ -31,7 +33,8 @@ export default function App() {
         <Route path="/responder" element={<Quiz />} />
         <Route path="/resultado" element={<Resultado />} />
         <Route path="/entrar" element={<Entrar />} />
-        <Route path="/meus" element={<Meus />} />
+        <Route path="/conta" element={<Meus />} />
+        <Route path="/meus" element={<Navigate to="/conta" replace />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="perguntas" replace />} />
           <Route path="perguntas" element={<Perguntas />} />

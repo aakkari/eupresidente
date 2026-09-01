@@ -130,7 +130,7 @@ export default function Quiz() {
 
   if (fim) return (
     <div className="mx-auto max-w-xl px-6 py-20">
-      <h2 className="font-serif text-3xl">Terminou.</h2>
+      <h2 className="titulo text-3xl">Terminou.</h2>
       <p className="mt-3 text-grafia">{Object.keys(respostas).length} respostas registradas.</p>
 
       {modo === 'long' && (
@@ -181,7 +181,7 @@ export default function Quiz() {
         </div>
       </div>
 
-      <p className="font-serif text-2xl leading-snug">{atual.body}</p>
+      <p className="subtitulo text-2xl leading-snug">{atual.body}</p>
 
       <div className="mt-8 space-y-2">
         {OPCOES.map(o => (

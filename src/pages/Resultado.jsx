@@ -38,7 +38,7 @@ export default function Resultado() {
       <header className="border-b border-borda" style={{ background: `${cor}0f` }}>
         <div className="mx-auto max-w-3xl px-6 py-14">
           <p className="rotulo">Sua família política</p>
-          <h1 className="mt-2 font-serif text-5xl leading-[1.05] sm:text-6xl">{a?.name}</h1>
+          <h1 className="mt-2 titulo text-5xl leading-[1.05] sm:text-6xl">{a?.name}</h1>
           <p className="mt-3 max-w-xl text-lg text-grafia">{a?.tagline}</p>
         </div>
       </header>
@@ -173,7 +173,7 @@ export default function Resultado() {
         {/* Guardar vem depois do resultado, nunca antes: o resultado e o
             argumento para criar a conta. */}
         <div className="cartao p-5">
-          <h3 className="font-serif text-xl">Guardar este resultado</h3>
+          <h3 className="subtitulo text-xl">Guardar este resultado</h3>
           {guardado ? (
             <p className="mt-2 text-sm text-grafia">
               Guardado. Ele aparece em <Link to="/meus" className="underline">seus resultados</Link>.
@@ -218,7 +218,7 @@ const Aviso = ({ children }) => <p className="mx-auto max-w-2xl px-6 py-20 text-
 
 const Secao = ({ titulo, subtitulo, children }) => (
   <section>
-    <h2 className="font-serif text-2xl">{titulo}</h2>
+    <h2 className="subtitulo text-2xl">{titulo}</h2>
     {subtitulo && <p className="mb-4 mt-1 max-w-2xl text-sm text-grafia">{subtitulo}</p>}
     <div className={subtitulo ? '' : 'mt-4'}>{children}</div>
   </section>

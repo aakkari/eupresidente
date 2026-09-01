@@ -19,8 +19,8 @@ export default function ReguaPolitica({ posicao }) {
       <p className="rotulo">Sua posição</p>
 
       <div className="mt-2 flex items-baseline gap-3">
-        <span className="font-serif text-6xl tabular-nums leading-none">{n}</span>
-        <span className="font-serif text-2xl">{rotulo}</span>
+        <span className="titulo text-6xl tabular-nums leading-none">{n}</span>
+        <span className="subtitulo text-2xl">{rotulo}</span>
       </div>
 
       <div className="relative mt-8 mb-2">

@@ -1,17 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   body { @apply bg-papel text-tinta antialiased; }
+  ::selection { @apply bg-tinta text-papel; }
 }
 
 @layer components {
-  .botao      { @apply inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-medium transition; }
-  .botao-forte{ @apply botao bg-tinta text-papel hover:opacity-90 disabled:opacity-40; }
-  .botao-leve { @apply botao border border-borda bg-white hover:bg-papel disabled:opacity-40; }
-  .campo      { @apply w-full rounded-md border border-borda bg-white px-3 py-2 text-sm focus:border-tinta focus:outline-none; }
-  .cartao     { @apply rounded-lg border border-borda bg-white; }
-  .rotulo     { @apply text-xs font-medium uppercase tracking-wider text-grafia; }
-  .texto      { @apply max-w-2xl leading-relaxed; }
+  /* Titulos grandes com tracking negativo: e o que da presenca a uma sans
+     sem recorrer a serifa nem a cor. */
+  .titulo      { @apply font-semibold tracking-muito leading-[0.95]; }
+  .subtitulo   { @apply font-medium tracking-apertado leading-tight; }
+
+  .botao       { @apply inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-medium transition; }
+  .botao-forte { @apply botao bg-tinta text-papel hover:bg-tinta/90 disabled:opacity-40; }
+  .botao-leve  { @apply botao border border-borda bg-white hover:border-tinta disabled:opacity-40; }
+  .campo       { @apply w-full rounded-lg border border-borda bg-white px-4 py-3 text-sm focus:border-tinta focus:outline-none; }
+  .cartao      { @apply rounded-xl border border-borda bg-white; }
+  .rotulo      { @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-tenue; }
+  .texto       { @apply max-w-2xl leading-relaxed text-grafia; }
 }

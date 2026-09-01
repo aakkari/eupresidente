@@ -44,7 +44,7 @@ export default function Entrar() {
 
   return (
     <form onSubmit={enviar} className="mx-auto max-w-sm px-6 py-16">
-      <h1 className="font-serif text-3xl">{modo === 'criar' ? 'Criar conta' : 'Entrar'}</h1>
+      <h1 className="titulo text-3xl">{modo === 'criar' ? 'Criar conta' : 'Entrar'}</h1>
       <p className="mt-2 text-sm leading-relaxed text-grafia">
         {voltarPara
           ? 'Sua conta guarda este resultado, deixa você comparar com amigos e refazer o teste depois para ver o que mudou.'
@@ -79,7 +79,7 @@ export default function Entrar() {
 
 const Caixa = ({ titulo, children }) => (
   <div className="mx-auto max-w-sm px-6 py-20">
-    <h1 className="font-serif text-2xl">{titulo}</h1>
+    <h1 className="subtitulo text-2xl">{titulo}</h1>
     <p className="mt-2 text-sm text-grafia">{children}</p>
   </div>
 )

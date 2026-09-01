@@ -1,50 +1,167 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { resumoInstrumento } from '../lib/api.js'
+import { MapaArte, ReguaArte, EixosArte } from '../components/ArteHome.jsx'
 
 export default function Home() {
   const ir = useNavigate()
   const [info, setInfo] = useState(null)
 
-  // Os numeros vem do banco. Escrever a mao foi exatamente o que fez a home
-  // anunciar 16 perguntas depois que o instrumento passou a ter 31.
+  // Os numeros vem do banco. Escrever a mao foi o que fez a home anunciar
+  // 16 perguntas depois que o instrumento passou a ter 31.
   useEffect(() => { resumoInstrumento().then(setInfo).catch(() => {}) }, [])
 
-  const descricao = (v, texto) => info
-    ? `${info[v].perguntas} perguntas, cerca de ${info[v].minutos} minutos. ${texto}`
-    : texto
-
   return (
-    <div className="mx-auto max-w-2xl px-6 py-20">
-      <p className="rotulo">Eu Presidente</p>
-      <h1 className="mt-3 font-serif text-4xl leading-tight sm:text-5xl">
-        Onde você está, de verdade.
-      </h1>
-      <p className="mt-5 text-lg leading-relaxed text-grafia">
-        A maioria dos testes políticos te encaixa num quadrante de duas dimensões.
-        Duas dimensões não dão conta: dá para defender o Estado na economia e a
-        liberdade nos costumes, ou o mercado na economia e a mão pesada na
-        segurança. Este mede seis eixos separados — e mostra onde você não cabe
-        na própria caixa.
-      </p>
+    <div>
+      {/* Abertura */}
+      <section className="mx-auto max-w-6xl px-6 pb-8 pt-16 sm:pt-24">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+          <div>
+            <p className="rotulo">Autoconhecimento político</p>
+            {/* Sem <br /> fixo: 'posicionamento' e longa demais e a quebra
+                manual deixava linhas de uma palavra so. text-balance
+                distribui as linhas de forma pareja em qualquer largura. */}
+            <h1 className="titulo mt-5 text-balance text-[2.5rem] sm:text-5xl lg:text-[3.5rem]">
+              Descubra qual é o seu posicionamento político.
+            </h1>
+            <p className="mt-7 max-w-xl text-lg leading-relaxed text-grafia">
+              Uma jornada que não serve só para você se classificar. Serve para entender
+              de onde vêm as suas posições, o que elas têm de contraditório, e como
+              debater com família e amigos de um jeito mais firme — porque você vai
+              saber o que pensa e por quê.
+            </p>
 
-      <div className="mt-10 grid gap-3 sm:grid-cols-2">
-        <button onClick={() => ir('/responder?modo=short')} className="cartao p-5 text-left transition hover:border-tinta">
-          <div className="font-medium">Versão curta</div>
-          <div className="mt-1 text-sm text-grafia">{descricao('curta', 'Dá o retrato geral.')}</div>
+            <div className="mt-9 flex flex-wrap items-center gap-3">
+              <button onClick={() => ir('/responder?modo=long')} className="botao-forte px-7 py-3.5 text-base">
+                Começar a jornada
+              </button>
+              <button onClick={() => ir('/responder?modo=short')} className="botao-leve">
+                Prefiro a versão rápida
+              </button>
+            </div>
+
+            <p className="mt-5 text-sm text-tenue">
+              {info
+                ? `${info.completa.perguntas} perguntas, cerca de ${info.completa.minutos} minutos · versão rápida com ${info.curta.perguntas}, em ${info.curta.minutos}`
+                : 'Sem cadastro para responder.'}
+            </p>
+          </div>
+
+          <div className="relative mx-auto w-full max-w-md lg:max-w-none">
+            <MapaArte className="w-full" />
+            <div className="absolute inset-x-0 -bottom-4 mx-auto w-[86%] rounded-xl border border-borda bg-white p-4">
+              <ReguaArte className="w-full" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* O que a pessoa recebe. Mostrado em chave grafica, nao explicado em
+          lista: a intencao e dar vontade de ver o proprio, nao ensinar. */}
+      <section className="mt-24 border-y border-borda bg-white">
+        <div className="mx-auto max-w-6xl px-6 py-16">
+          <p className="rotulo">No fim da jornada</p>
+          <h2 className="subtitulo mt-3 max-w-2xl text-3xl sm:text-4xl">
+            Um retrato seu, não um rótulo.
+          </h2>
+
+          <div className="mt-12 grid gap-10 sm:grid-cols-3">
+            <Peca titulo="Uma posição, de 1 a 100"
+                  texto="Da extrema esquerda à extrema direita, com a conta à mostra — e um segundo número dizendo se ela conta a história toda.">
+              <ReguaArte className="w-full" valor={22} />
+            </Peca>
+
+            <Peca titulo="Seis eixos, dezoito facetas"
+                  texto="Economia, costumes, autoridade, nação, democracia e meio ambiente. Cada um dividido em três, porque é aí que aparece onde você é radical e onde é morno.">
+              <EixosArte className="w-full" />
+            </Peca>
+
+            <Peca titulo="Seu ponto no mapa"
+                  texto="Quinze famílias políticas reais como referência, e você entre elas. Com história, figuras, forças, fraquezas e onde cada uma é forte no mundo.">
+              <MapaArte className="h-24 w-full" preencher />
+            </Peca>
+          </div>
+        </div>
+      </section>
+
+      {/* Diferencial metodologico, dito sem jargao. */}
+      <section className="mx-auto max-w-6xl px-6 py-20">
+        <div className="grid gap-12 lg:grid-cols-2">
+          <div>
+            <h2 className="subtitulo text-balance text-3xl sm:text-4xl">
+              Dois eixos não dão conta de ninguém.
+            </h2>
+            <p className="mt-6 text-lg leading-relaxed text-grafia">
+              A maioria dos testes te encaixa num quadrante: esquerda ou direita,
+              autoritário ou libertário. Só que dá para defender o Estado na economia e a
+              liberdade nos costumes. Dá para querer mercado livre e mão pesada na
+              segurança. Dá para ser radical no que quer mudar e absolutamente legalista
+              no como.
+            </p>
+            <p className="mt-4 text-lg leading-relaxed text-grafia">
+              Aqui são seis eixos medidos separadamente — e o resultado mostra, com
+              todas as letras, onde você <em>não</em> cabe na caixa que mais se parece
+              com você.
+            </p>
+          </div>
+
+          <dl className="grid grid-cols-2 gap-x-8 gap-y-10 self-center">
+            <Numero n={info?.completa.perguntas ?? '90'} r="perguntas na versão completa" />
+            <Numero n="18" r="facetas medidas separadamente" />
+            <Numero n="15" r="famílias políticas de referência" />
+            <Numero n="±3" r="pontos de margem de erro" />
+          </dl>
+        </div>
+      </section>
+
+      {/* Privacidade em destaque, nao no rodape: e o que decide se a pessoa
+          responde com sinceridade. */}
+      <section className="border-t border-borda bg-white">
+        <div className="mx-auto max-w-6xl px-6 py-16">
+          <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
+            <h2 className="subtitulo text-balance text-2xl sm:text-3xl">
+              Opinião política é dado sensível. Tratamos como tal.
+            </h2>
+            <div className="space-y-3 text-grafia">
+              <p>Você responde sem cadastro. O resultado é seu, e o link é a chave.</p>
+              <p>
+                Nada entra na base de pesquisa sem você marcar que aceita — separadamente,
+                no fim, e só na versão completa.
+              </p>
+              <p>
+                A linha que vai para a pesquisa não guarda ligação com você. Não existe
+                caminho de volta, nem para nós. É assim por desenho, não por promessa.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-6 py-20 text-center">
+        <h2 className="titulo text-3xl sm:text-5xl">Pronto para se conhecer?</h2>
+        <button onClick={() => ir('/responder?modo=long')} className="botao-forte mt-8 px-8 py-4 text-base">
+          Começar agora
         </button>
-
-        <button onClick={() => ir('/responder?modo=long')} className="cartao p-5 text-left transition hover:border-tinta">
-          <div className="font-medium">Versão completa</div>
-          <div className="mt-1 text-sm text-grafia">{descricao('completa', 'É a única que entra na pesquisa.')}</div>
-        </button>
-      </div>
-
-      <p className="mt-8 text-xs leading-relaxed text-grafia">
-        Opinião política é dado sensível. Você responde sem cadastro, e nada vai
-        para a base de pesquisa sem você marcar que aceita — separadamente, no
-        fim. Podemos apagar tudo a qualquer momento.
-      </p>
+      </section>
     </div>
   )
 }
+
+const Peca = ({ titulo, texto, children }) => (
+  <div>
+    {/* overflow-hidden porque o mapa e quadrado e vazava da caixa de altura
+        fixa — os pontos apareciam soltos por fora do cartao. */}
+    <div className="mb-5 flex h-28 items-center justify-center overflow-hidden rounded-xl border border-borda bg-papel px-5">
+      <div className="w-full max-h-24 [&>svg]:max-h-24 [&>svg]:w-full">{children}</div>
+    </div>
+    <h3 className="font-semibold tracking-apertado">{titulo}</h3>
+    <p className="mt-2 text-sm leading-relaxed text-grafia">{texto}</p>
+  </div>
+)
+
+const Numero = ({ n, r }) => (
+  <div>
+    <dt className="titulo text-4xl sm:text-5xl tabular-nums">{n}</dt>
+    <dd className="mt-1.5 text-sm text-grafia">{r}</dd>
+  </div>
+)

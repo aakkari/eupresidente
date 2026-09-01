@@ -18,7 +18,7 @@ export default function AdminLayout() {
 
   if (!temSupabase()) return (
     <div className="mx-auto max-w-md px-6 py-20">
-      <h1 className="font-serif text-2xl">Admin indisponível</h1>
+      <h1 className="subtitulo text-2xl">Admin indisponível</h1>
       <p className="mt-2 text-sm text-grafia">
         Faltam <code>VITE_SUPABASE_URL</code> e <code>VITE_SUPABASE_ANON_KEY</code>.
         O questionário continua funcionando — só o login do admin depende delas.
@@ -65,7 +65,7 @@ function Login() {
 
   return (
     <form onSubmit={entrar} className="mx-auto max-w-sm px-6 py-20">
-      <h1 className="font-serif text-2xl">Admin</h1>
+      <h1 className="subtitulo text-2xl">Admin</h1>
       <p className="mt-1 text-sm text-grafia">Acesso restrito.</p>
       <input className="campo mt-6" type="email" placeholder="email" value={email}
              onChange={e => setEmail(e.target.value)} required />
