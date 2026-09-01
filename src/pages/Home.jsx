@@ -1,7 +1,18 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { resumoInstrumento } from '../lib/api.js'
 
 export default function Home() {
   const ir = useNavigate()
+  const [info, setInfo] = useState(null)
+
+  // Os numeros vem do banco. Escrever a mao foi exatamente o que fez a home
+  // anunciar 16 perguntas depois que o instrumento passou a ter 31.
+  useEffect(() => { resumoInstrumento().then(setInfo).catch(() => {}) }, [])
+
+  const descricao = (v, texto) => info
+    ? `${info[v].perguntas} perguntas, cerca de ${info[v].minutos} minutos. ${texto}`
+    : texto
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-20">
@@ -20,12 +31,12 @@ export default function Home() {
       <div className="mt-10 grid gap-3 sm:grid-cols-2">
         <button onClick={() => ir('/responder?modo=short')} className="cartao p-5 text-left transition hover:border-tinta">
           <div className="font-medium">Versão curta</div>
-          <div className="mt-1 text-sm text-grafia">16 perguntas, cerca de 4 minutos. Dá o retrato geral.</div>
+          <div className="mt-1 text-sm text-grafia">{descricao('curta', 'Dá o retrato geral.')}</div>
         </button>
 
         <button onClick={() => ir('/responder?modo=long')} className="cartao p-5 text-left transition hover:border-tinta">
           <div className="font-medium">Versão completa</div>
-          <div className="mt-1 text-sm text-grafia">50 perguntas, cerca de 12 minutos. É a única que entra na pesquisa.</div>
+          <div className="mt-1 text-sm text-grafia">{descricao('completa', 'É a única que entra na pesquisa.')}</div>
         </button>
       </div>
 

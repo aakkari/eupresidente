@@ -57,3 +57,5 @@ export const vincularSessao = (token, sessaoToken, display_name) =>
   chamar('session-claim', { metodo: 'POST', corpo: { token: sessaoToken, display_name }, token })
 
 export const meusResultados = (token) => chamar('meus-resultados', { token })
+
+export const resumoInstrumento = () => chamar('instrumento')

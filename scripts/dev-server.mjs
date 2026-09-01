@@ -130,6 +130,15 @@ const rotas = {
     json(res, { token, mode, instrumento, perguntas })
   },
 
+  instrumento: (_body, _q, res) => {
+    const curta = questions.filter(q => q.in_short).length
+    const longa = questions.filter(q => q.in_long).length
+    const minutos = n => Math.max(2, Math.ceil((n * 13) / 60))
+    json(res, { id: instrumento.id, label: instrumento.label,
+      curta: { perguntas: curta, minutos: minutos(curta) },
+      completa: { perguntas: longa, minutos: minutos(longa) } })
+  },
+
   'session-answer': (body, _q, res) => {
     const s = sessoes.get(body.token)
     if (!s) return json(res, { erro: 'sessao nao encontrada' }, 404)
