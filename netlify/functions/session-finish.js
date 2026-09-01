@@ -23,7 +23,7 @@ export default protegido(async (req) => {
   const [{ data: perguntas }, { data: arquetipos }, { data: instrumento }, { data: respostas }] =
     await Promise.all([
       sb.from('questions')
-        .select('id, axis, direction, weight, secondary_axis, secondary_weight, scored')
+        .select('id, axis, facet, direction, weight, secondary_axis, secondary_weight, scored')
         .eq('instrument_id', sessao.instrument_id),
       sb.from('archetypes')
         .select('id, centroid, available_short').eq('instrument_id', sessao.instrument_id),
@@ -60,6 +60,7 @@ export default protegido(async (req) => {
     session_id: sessao.id,
     instrument_id: sessao.instrument_id,
     vector: score.vector,
+    facet_vector: score.facet_vector,
     confidence: score.confidence,
     consistency: score.consistency,
     neutral_rate: score.neutral_rate,

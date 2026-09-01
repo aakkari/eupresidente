@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { buscarResultado } from '../lib/api.js'
 import ReguaPolitica from '../components/ReguaPolitica.jsx'
 import MatrizPolitica from '../components/MatrizPolitica.jsx'
+import Facetas from '../components/Facetas.jsx'
 
 const EIXOS = ['ECO', 'SOC', 'AUT', 'NAC', 'DEM', 'AMB']
 
@@ -128,6 +129,12 @@ export default function Resultado() {
                     confianca={Number(resultado.confidence?.[e] ?? 0)} cor={cor} />
             ))}
           </div>
+        </Secao>
+
+        <Secao titulo="O detalhe dentro de cada eixo"
+               subtitulo="Cada eixo se divide em três. É aqui que aparece onde você é radical e onde é morno — coisa que a nota do eixo esconde.">
+          <Facetas facetVector={resultado.facet_vector} facetas={instrumento?.facets}
+                   eixos={eixos} cor={cor} />
         </Secao>
 
         {resultado.tensions?.length > 0 && (

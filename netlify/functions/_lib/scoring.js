@@ -143,6 +143,30 @@ export function computeTensions(vetor, archetype, confidence, limite = 0.45) {
   })
 }
 
+// Vetor por faceta. Mesma formula do eixo, so que agrupando por subdivisao:
+// em vez de "Economia -0.83", devolve redistribuicao, regulacao e propriedade
+// separadas. E o que da ao relatorio o que dizer alem de repetir o rotulo.
+//
+// So conta faceta com pelo menos 3 respostas: com uma ou duas, o numero e
+// ruido com aparencia de medida.
+export function computeFacetVector(questions, answers, minimo = 3) {
+  const soma = {}, teto = {}, n = {}
+  for (const q of questions) {
+    if (!q.scored || !q.facet) continue
+    const valor = answers[q.id]
+    if (valor === undefined || valor === null) continue
+    soma[q.facet] = (soma[q.facet] ?? 0) + valor * q.direction * Number(q.weight)
+    teto[q.facet] = (teto[q.facet] ?? 0) + VALOR_MAX * Number(q.weight)
+    n[q.facet] = (n[q.facet] ?? 0) + 1
+  }
+  const vetor = {}
+  for (const facet of Object.keys(soma)) {
+    if (n[facet] < minimo || teto[facet] === 0) continue
+    vetor[facet] = round(soma[facet] / teto[facet], 3)
+  }
+  return vetor
+}
+
 export function scoreSession({ questions, answers, archetypes, axisWeights, mode }) {
   const vector = computeVector(questions, answers)
   const confidence = computeConfidence(questions, answers)
@@ -154,7 +178,9 @@ export function scoreSession({ questions, answers, archetypes, axisWeights, mode
   const tensions = computeTensions(vector, arquetipo, confidence)
 
   return {
-    vector, confidence, consistency,
+    vector,
+    facet_vector: computeFacetVector(questions, answers),
+    confidence, consistency,
     neutral_rate: neutralRate,
     archetype_id: primario,
     archetype_secondary_id: secundario,

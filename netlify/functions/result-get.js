@@ -19,7 +19,7 @@ export default protegido(async (req) => {
 
   const [{ data: arquetipos }, { data: instrumento }] = await Promise.all([
     sb.from('archetypes').select('*').eq('instrument_id', sessao.instrument_id),
-    sb.from('instruments').select('label, axes').eq('id', sessao.instrument_id).single(),
+    sb.from('instruments').select('label, axes, facets').eq('id', sessao.instrument_id).single(),
   ])
 
   return json({

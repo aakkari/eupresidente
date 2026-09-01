@@ -79,6 +79,7 @@ const instrumento = {
   id: texto(instrumentoRaw[0]),
   label: texto(instrumentoRaw[1]),
   axes: jsonb(instrumentoRaw[2]),
+  facets: instrumentoRaw[4] && instrumentoRaw[4].includes('jsonb') ? jsonb(instrumentoRaw[4]) : {},
   axis_weights: jsonb(instrumentoRaw[3]),
 }
 
