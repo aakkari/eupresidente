@@ -9,7 +9,7 @@ export default function EixoBarra({ eixo, valor, confianca, meta }) {
       <div className="mb-1.5 flex items-baseline justify-between gap-3 text-xs">
         <span className="font-medium">{meta?.nome ?? eixo}</span>
         {baixa && (
-          <span className="text-[11px] text-grafia" title="poucas perguntas respondidas ou muitas sem posicao">
+          <span className="text-[11px] text-grafia" title="poucas perguntas respondidas ou muitas sem posição">
             medida fraca
           </span>
         )}

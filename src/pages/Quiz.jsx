@@ -5,7 +5,7 @@ import { iniciarSessao, salvarRespostas, finalizarSessao } from '../lib/api.js'
 const OPCOES = [
   { v: -2, r: 'Discordo totalmente' },
   { v: -1, r: 'Discordo' },
-  { v:  0, r: 'Nao tenho posicao formada' },
+  { v:  0, r: 'Não tenho posição formada' },
   { v:  1, r: 'Concordo' },
   { v:  2, r: 'Concordo totalmente' },
 ]
@@ -70,10 +70,10 @@ export default function Quiz() {
           <input type="checkbox" className="mt-0.5" checked={consentimento}
                  onChange={e => setConsentimento(e.target.checked)} />
           <span className="leading-relaxed">
-            Autorizo o uso das minhas respostas, <strong>de forma anonima e agregada</strong>,
-            em pesquisa de opiniao. A linha da pesquisa nao guarda ligacao com voce: nao
-            existe caminho de volta, nem para nos. Seu resultado individual aparece de
-            qualquer forma — isto aqui e so sobre a pesquisa.
+            Autorizo o uso das minhas respostas, <strong>de forma anônima e agregada</strong>,
+            em pesquisa de opinião. A linha da pesquisa não guarda ligação com você: não
+            existe caminho de volta, nem para nós. Seu resultado individual aparece de
+            qualquer forma — isto aqui é só sobre a pesquisa.
           </span>
         </label>
       )}

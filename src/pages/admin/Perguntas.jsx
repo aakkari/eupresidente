@@ -52,8 +52,8 @@ export default function Perguntas() {
           </select>
           <p className="mt-2 text-xs text-grafia">
             {travado
-              ? 'Publicado: o texto esta travado. Mudar uma pergunta agora faria respostas antigas e novas significarem coisas diferentes sob o mesmo id. Clone em v2 para editar.'
-              : `Rascunho: ${dados.perguntas.length} perguntas editaveis.`}
+              ? 'Publicado: o texto está travado. Mudar uma pergunta agora faria respostas antigas e novas significarem coisas diferentes sob o mesmo id. Clone em v2 para editar.'
+              : `Rascunho: ${dados.perguntas.length} perguntas editáveis.`}
           </p>
         </div>
 
@@ -62,9 +62,9 @@ export default function Perguntas() {
             <button className="botao-forte" onClick={() => acao('publicar')}>Publicar</button>
           )}
           <button className="botao-leve" onClick={() => {
-            const novo_id = prompt('id da nova versao (ex: br-v2)')
+            const novo_id = prompt('id da nova versão (ex: br-v2)')
             if (novo_id) acao('clonar', { novo_id })
-          }}>Clonar em nova versao</button>
+          }}>Clonar em nova versão</button>
         </div>
       </div>
 
@@ -94,7 +94,7 @@ export default function Perguntas() {
                   </label>
 
                   <label className="flex items-center gap-1">
-                    direcao
+                    direção
                     <select className="campo w-auto py-1" defaultValue={p.direction} disabled={travado}
                       onChange={e => alterar(p.id, { direction: Number(e.target.value) })}>
                       <option value={1}>+1 direta</option>
@@ -117,11 +117,11 @@ export default function Perguntas() {
                   </label>
 
                   {p.attention_pair && (
-                    <span className="rounded bg-papel px-2 py-1">par de atencao: {p.attention_pair}</span>
+                    <span className="rounded bg-papel px-2 py-1">par de atenção: {p.attention_pair}</span>
                   )}
                   {p.secondary_axis && (
                     <span className="rounded bg-papel px-2 py-1">
-                      2o eixo: {p.secondary_axis} ({p.secondary_weight})
+                      2º eixo: {p.secondary_axis} ({p.secondary_weight})
                     </span>
                   )}
                 </div>

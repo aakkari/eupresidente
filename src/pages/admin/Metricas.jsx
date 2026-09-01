@@ -18,17 +18,17 @@ export default function Metricas() {
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Tile n={m.sessoes.total} r="sessoes" />
+        <Tile n={m.sessoes.total} r="sessões" />
         <Tile n={m.sessoes.completas} r="concluidas" />
-        <Tile n={m.sessoes.conclusao !== null ? `${Math.round(m.sessoes.conclusao * 100)}%` : '—'} r="conclusao" />
+        <Tile n={m.sessoes.conclusao !== null ? `${Math.round(m.sessoes.conclusao * 100)}%` : '—'} r="conclusão" />
         <Tile n={m.research_pool} r="na pesquisa" />
       </div>
 
       <section>
-        <h2 className="rotulo mb-2">Distribuicao de arquetipos</h2>
+        <h2 className="rotulo mb-2">Distribuição de arquétipos</h2>
         <p className="mb-3 text-sm text-grafia">
-          Arquetipo que nunca aparece tem centroide mal posicionado. Arquetipo que leva
-          quase tudo significa que o instrumento nao esta discriminando.
+          Arquétipo que nunca aparece tem centroide mal posicionado. Arquétipo que leva
+          quase tudo significa que o instrumento não está discriminando.
         </p>
         {arquetipos.length === 0
           ? <p className="text-sm text-grafia">Nenhum resultado ainda.</p>
@@ -48,10 +48,10 @@ export default function Metricas() {
       </section>
 
       <section>
-        <h2 className="rotulo mb-2">Consistencia media por eixo</h2>
+        <h2 className="rotulo mb-2">Consistência média por eixo</h2>
         <p className="mb-3 text-sm text-grafia">
           Eixo consistentemente baixo significa pergunta invertida mal redigida: a pessoa
-          nao percebeu que era o contrario, e o eixo passa a medir leitura em vez de opiniao.
+          não percebeu que era o contrário, e o eixo passa a medir leitura em vez de opinião.
           Abaixo de 0,6 vale reescrever.
         </p>
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
@@ -73,7 +73,7 @@ export default function Metricas() {
                 <span key={f} className="cartao px-3 py-1.5">{f}: <strong>{n}</strong></span>
               ))}
           <span className="cartao px-3 py-1.5">
-            taxa media de "sem posicao": <strong>{m.neutral_rate_medio ?? '—'}</strong>
+            taxa média de "sem posição": <strong>{m.neutral_rate_medio ?? '—'}</strong>
           </span>
         </div>
       </section>

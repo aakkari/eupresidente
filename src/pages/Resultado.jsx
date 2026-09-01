@@ -46,10 +46,10 @@ export default function Resultado() {
 
       {arquetipo_secundario && (
         <div className="cartao mt-6 p-4 text-sm">
-          <span className="rotulo">Quase la tambem</span>
+          <span className="rotulo">Quase lá também</span>
           <p className="mt-1">
-            Voce ficou a uma distancia parecida de <strong>{arquetipo_secundario.name}</strong>.
-            Isso nao e indecisao: e sinal de que voce combina duas tradicoes que costumam
+            Você ficou a uma distância parecida de <strong>{arquetipo_secundario.name}</strong>.
+            Isso não é indecisão: é sinal de que você combina duas tradições que costumam
             andar separadas.
           </p>
         </div>
@@ -67,17 +67,17 @@ export default function Resultado() {
 
       {resultado.tensions?.length > 0 && (
         <div className="mt-12">
-          <h2 className="font-serif text-2xl">Onde voce nao cabe na caixa</h2>
+          <h2 className="font-serif text-2xl">Onde você não cabe na caixa</h2>
           <p className="mt-2 text-grafia">
-            Nestes eixos voce se afasta do arquetipo que mais se parece com voce. E a
-            parte mais interessante do seu perfil — ninguem e a media da propria familia
-            politica.
+            Nestes eixos você se afasta do arquétipo que mais se parece com você. É a
+            parte mais interessante do seu perfil — ninguém é a média da própria família
+            política.
           </p>
           <ul className="mt-4 space-y-2">
             {resultado.tensions.map(e => (
               <li key={e} className="cartao p-3 text-sm">
                 <strong>{eixos[e]?.nome ?? e}</strong>
-                {' — '}voce esta em {Number(resultado.vector[e]).toFixed(2)}, enquanto
+                {' — '}você está em {Number(resultado.vector[e]).toFixed(2)}, enquanto
                 {' '}{arquetipo?.name} costuma ficar em {Number(arquetipo?.centroid?.[e] ?? 0).toFixed(2)}.
               </li>
             ))}
@@ -88,12 +88,12 @@ export default function Resultado() {
       {resultado.quality_flags?.length > 0 && (
         <p className="mt-10 text-xs text-grafia">
           Marcamos esta resposta como {resultado.quality_flags.join(', ')} — por isso ela
-          nao entra na base de pesquisa. Seu resultado continua valendo para voce.
+          não entra na base de pesquisa. Seu resultado continua valendo para você.
         </p>
       )}
 
       <p className="mt-10 text-xs text-grafia">
-        Guarde este link: e por ele que voce volta ao seu resultado.
+        Guarde este link: é por ele que você volta ao seu resultado.
       </p>
     </div>
   )
