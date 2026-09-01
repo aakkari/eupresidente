@@ -167,3 +167,91 @@ export { EIXOS }
 
 const media = xs => xs.reduce((s, x) => s + x, 0) / xs.length
 const round = (n, casas) => Number(n.toFixed(casas))
+
+// Posicao esquerda-direita, em DOIS numeros e nao em um.
+//
+// A primeira versao disto somava economia e costumes num valor so, e o teste
+// derrubou na hora: o libertario (direita na economia, progressista nos
+// costumes) e o nacional-popular (o inverso exato) davam ambos "Centro" com
+// 3% e 11%. Dois cantos opostos do mapa recebendo o mesmo rotulo errado.
+// Nenhum ajuste de peso conserta isso — e limitacao de projetar duas coisas
+// independentes num eixo so.
+//
+// Entao: dois eixos, e rotulo unico apenas quando os dois concordam. Quem
+// cruza recebe a descricao cruzada, que e mais informativa e e verdade.
+const FAIXAS = [
+  { ate: -0.75, e: 'Esquerda radical',  c: 'Progressista radical' },
+  { ate: -0.45, e: 'Esquerda',          c: 'Progressista' },
+  { ate: -0.15, e: 'Centro-esquerda',   c: 'Centro-progressista' },
+  { ate:  0.15, e: 'Centro',            c: 'Centro' },
+  { ate:  0.45, e: 'Centro-direita',    c: 'Centro-conservador' },
+  { ate:  0.75, e: 'Direita',           c: 'Conservador' },
+  { ate:  1.01, e: 'Direita radical',   c: 'Conservador radical' },
+]
+
+const faixa = (v, chave) => FAIXAS.find(f => v < f.ate)?.[chave] ?? 'Centro'
+
+export function posicaoPolitica(vetor) {
+  // Economia: mercado empurra para a direita.
+  const economia = round(Math.max(-1, Math.min(1, vetor.ECO ?? 0)), 3)
+
+  // Costumes: tradicao e ordem empurram para o conservador. AUT entra com
+  // peso menor porque autoridade nao e a mesma coisa que conservadorismo —
+  // existe autoritario progressista e liberal conservador.
+  const costumes = round(Math.max(-1, Math.min(1,
+    -0.72 * (vetor.SOC ?? 0) + 0.28 * (vetor.AUT ?? 0))), 3)
+
+  const rotEco = faixa(economia, 'e')
+  const rotCos = faixa(costumes, 'c')
+
+  // Concordam quando apontam para o mesmo lado, ou quando um deles e centro.
+  const ladoDe = v => v < -0.18 ? -1 : v > 0.18 ? 1 : 0
+  const le = ladoDe(economia), lc = ladoDe(costumes)
+  const coerente = le === lc || le === 0 || lc === 0
+
+  // Media so entre eixos que apontam para o mesmo lado. Se um esta no centro,
+  // o rotulo segue o outro: quem tem economia -0.8 e de esquerda no bolso,
+  // mesmo sem opiniao formada sobre costumes. Fazer media com o centro dilui
+  // o extremo ate o rotulo mentir — foi o que deu "Centro-direita" para o
+  // nacional-conservador, que e conservador em 0.77.
+  const combinado = !coerente ? null
+    : le === 0 && lc === 0 ? round((economia + costumes) / 2, 3)
+    : le === 0 ? costumes
+    : lc === 0 ? economia
+    : round((economia + costumes) / 2, 3)
+
+  // Radical e extremista nao sao a mesma coisa, e aqui elas ficam separadas
+  // de proposito. Radical e quanto voce quer mudar — da para ser radical e
+  // absolutamente democratico. O metodo e outra pergunta: o eixo DEM diz se a
+  // pessoa aceita as regras do jogo quando elas contrariam a maioria. O debate
+  // publico brasileiro funde os dois termos; o instrumento nao precisa fundir.
+  const metodo = (() => {
+    const dem = vetor.DEM ?? 0
+    if (dem >= 0.55) return { chave: 'acima_das_regras', rotulo: 'Vontade popular acima das instituicoes',
+      texto: 'Quando a maioria e a regra se contradizem, voce fica com a maioria.' }
+    if (dem <= -0.55) return { chave: 'regras_acima', rotulo: 'Instituicoes acima da maioria',
+      texto: 'Voce aceita que a regra contrarie a maioria — e o ponto dela, para voce.' }
+    return { chave: 'equilibrado', rotulo: 'Sem posicao firme sobre o conflito',
+      texto: 'Voce nao tem posicao fechada sobre quem decide quando maioria e regra se chocam.' }
+  })()
+
+  return {
+    economia, costumes, metodo,
+    rotulo_economia: rotEco,
+    rotulo_costumes: rotCos,
+    coerente,
+    // Titulo curto: uma frase quando cabe, duas quando nao cabe.
+    titulo: coerente
+      ? faixa(combinado, 'e')
+      : `${rotEco} na economia, ${rotCos.replace('Centro-', '')} nos costumes`,
+    intensidade: combinado === null ? null : Math.round(Math.abs(combinado) * 100),
+    intensidade_economia: Math.round(Math.abs(economia) * 100),
+    intensidade_costumes: Math.round(Math.abs(costumes) * 100),
+    // Radical no conteudo, sempre coerente com o titulo mostrado: para quem
+    // e coerente vale o valor combinado, para quem cruza vale o eixo mais
+    // extremo — que e o que o titulo ja destaca. Nao diz nada sobre metodo.
+    radical: combinado !== null
+      ? Math.abs(combinado) >= 0.75
+      : Math.max(Math.abs(economia), Math.abs(costumes)) >= 0.75,
+  }
+}
