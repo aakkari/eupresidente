@@ -73,8 +73,9 @@ ou responde a versão curta.
 
 ## Duas versões
 
-**Curta** — 15 perguntas, `in_short = true`, três por bloco nos blocos de maior
-poder discriminante. Serve para viralizar e gerar lead. Não entra na base de
+**Curta** — 16 perguntas, `in_short = true`, concentradas nos blocos de maior
+poder discriminante, com cobertura dos seis eixos (3 em ECO, SOC, AUT e DEM; 2 em
+NAC e AMB). Serve para viralizar e gerar lead. Não entra na base de
 pesquisa: n grande de instrumento curto é ruído com cara de dado.
 
 **Longa** — 50 perguntas, cobertura equilibrada dos 8 blocos, com pares de
@@ -92,3 +93,27 @@ Quatro heurísticas, já implementadas em `detect_quality_flags`:
 
 Qualquer flag zera `research_eligible`. A pessoa continua vendo o resultado
 dela — a exclusão é da base de pesquisa, não da experiência.
+
+## Peso secundário negativo
+
+`secondary_weight` aceita valor negativo, e isso não é erro de digitação. A
+contribuição é `value * direction * peso`, então um peso secundário negativo
+inverte o sentido no segundo eixo sem precisar de uma coluna
+`secondary_direction`. Usado uma vez na v1: cota em universidade pública (`v05`)
+empurra `SOC` para autonomia **e** `ECO` para o Estado — direções opostas na
+mesma resposta.
+
+## Balanço da v1, medido no banco
+
+| Eixo | Perguntas | Direta | Invertida | Na curta | Como eixo secundário |
+|---|---|---|---|---|---|
+| ECO | 12 | 5 | 7 | 3 | 6 |
+| AUT | 10 | 6 | 4 | 3 | 4 |
+| SOC | 8 | 5 | 3 | 3 | 4 |
+| DEM | 8 | 5 | 3 | 3 | 3 |
+| AMB | 6 | 3 | 3 | 2 | 0 |
+| NAC | 6 | 3 | 3 | 2 | 0 |
+
+Nenhum eixo tem todas as perguntas na mesma direção — se tivesse, mediria
+aquiescência em vez de opinião. `ECO` e `AUT` carregam mais itens porque são os
+eixos com maior variância esperada na população brasileira.
