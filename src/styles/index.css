@@ -13,4 +13,5 @@
   .campo      { @apply w-full rounded-md border border-borda bg-white px-3 py-2 text-sm focus:border-tinta focus:outline-none; }
   .cartao     { @apply rounded-lg border border-borda bg-white; }
   .rotulo     { @apply text-xs font-medium uppercase tracking-wider text-grafia; }
+  .texto      { @apply max-w-2xl leading-relaxed; }
 }

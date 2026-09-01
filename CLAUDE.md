@@ -131,3 +131,16 @@ O painel de metricas nao existe para contar visitas. Ele mostra tres coisas:
 `scripts/validar-instrumento.mjs` complementa: testa se cada arquetipo e
 alcancavel antes de qualquer pessoa responder. Rode depois de mexer em
 centroide, peso ou direcao.
+
+## Dívida aberta: seed x banco
+
+O conteúdo rico dos arquétipos (`history`, `curiosities`, `figures`,
+`strengths`, `weaknesses`, `countries`, `blind_spots`) foi gravado direto no
+banco e **ainda não está no `seed.sql`**. É divergência conhecida, contra a
+decisão 8, e a razão é só de ordem prática: o conteúdo está sendo escrito em
+lotes, e gerar o seed a cada lote seria refazer o mesmo trabalho.
+
+Fechar assim que os 12 perfis estiverem escritos: extrair do banco e gravar no
+`seed.sql` de uma vez. Enquanto isso, `scripts/dev-server.mjs` mostra os perfis
+sem o conteúdo rico, porque lê do seed — a página completa só aparece em
+produção, contra o banco real.
