@@ -17,6 +17,13 @@ npx netlify dev             # front + functions juntos, em :8888
 `npm run dev` sobe so o Vite — as Functions nao respondem, entao o questionario
 nao funciona. Use `netlify dev`.
 
+## Projetos
+
+| Servico | Nome | Identificador |
+|---|---|---|
+| Supabase | `eupresidente-br` (sa-east-1) | `kenmkyrxqsgdyqjfejhn` |
+| Netlify | `eupresidente` | `7e7f4d63-21ba-4d1e-ae10-0e4fea718434` |
+
 ## Variaveis de ambiente
 
 | Variavel | Onde | Para que |
@@ -30,6 +37,11 @@ nao funciona. Use `netlify dev`.
 
 `SUPABASE_SERVICE_ROLE_KEY` nunca leva prefixo `VITE_`. O prefixo publica a
 variavel no bundle do browser, e essa chave ignora RLS e todos os grants.
+
+Pegue a service_role em **Supabase > Project Settings > API Keys**, e cole em
+**Netlify > Site configuration > Environment variables**, com escopo
+`Functions` e marcada como secreta. Sem ela as Functions sobem, mas toda
+chamada falha em `SUPABASE_URL ou SUPABASE_SERVICE_ROLE_KEY ausente`.
 
 ## Estrutura
 
