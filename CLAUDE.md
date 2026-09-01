@@ -93,3 +93,41 @@ quando acessadas diretamente, e o PostgREST expõe cada partição como tabela
 própria. Na v1 isso foi corrigido com RLS por partição mais `REVOKE`. Se você
 criar novas partições, aplique as duas coisas — a verificação que só olha
 `relispartition = false` passa limpa e mente.
+
+---
+
+## Como o codigo esta organizado
+
+**Front** (`src/`) so le. Home, Quiz e Resultado conversam exclusivamente com
+Netlify Functions — o browser nunca abre conexao de escrita com o banco.
+
+**Functions** (`netlify/functions/`) fazem tudo o que altera estado, com
+`service_role`. `_lib/scoring.js` e o motor deterministico: nenhuma chamada de
+LLM entra nesse arquivo, hoje ou depois.
+
+**Admin** (`src/pages/admin/`) revisa perguntas e le metricas do instrumento.
+A autorizacao e sempre no servidor (`_lib/auth.js` confere o token contra
+`ADMIN_EMAILS`); esconder botao no front nao e controle de acesso.
+
+## O gabarito nao vai para o browser
+
+`session-start` devolve `id`, `body`, `block` e `axis` — nunca `direction`,
+`weight` ou `secondary_weight`. Quem conhece a direcao e o peso de cada item
+fabrica o resultado que quiser e, pior, envenena a base de pesquisa de forma
+dificil de detectar. Se precisar agrupar visualmente por eixo, `axis` basta.
+
+## Metricas que avaliam o instrumento
+
+O painel de metricas nao existe para contar visitas. Ele mostra tres coisas:
+
+- **Distribuicao de arquetipos** — um que nunca aparece tem centroide mal
+  posicionado; um que leva quase tudo significa que o instrumento nao
+  discrimina.
+- **Consistencia por eixo** — valor baixo indica pergunta invertida mal
+  redigida: a pessoa nao percebeu que era o contrario, e o eixo passou a medir
+  interpretacao de texto em vez de opiniao. Abaixo de 0,6, reescreva.
+- **Flags de qualidade** — quanto da base esta sendo descartada, e por que.
+
+`scripts/validar-instrumento.mjs` complementa: testa se cada arquetipo e
+alcancavel antes de qualquer pessoa responder. Rode depois de mexer em
+centroide, peso ou direcao.

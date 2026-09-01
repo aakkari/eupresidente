@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body { @apply bg-papel text-tinta antialiased; }
+}
+
+@layer components {
+  .botao      { @apply inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-medium transition; }
+  .botao-forte{ @apply botao bg-tinta text-papel hover:opacity-90 disabled:opacity-40; }
+  .botao-leve { @apply botao border border-borda bg-white hover:bg-papel disabled:opacity-40; }
+  .campo      { @apply w-full rounded-md border border-borda bg-white px-3 py-2 text-sm focus:border-tinta focus:outline-none; }
+  .cartao     { @apply rounded-lg border border-borda bg-white; }
+  .rotulo     { @apply text-xs font-medium uppercase tracking-wider text-grafia; }
+}
