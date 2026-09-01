@@ -52,3 +52,8 @@ export const adminPublicar = (token, corpo) =>
   chamar('admin-publish', { metodo: 'POST', corpo, token })
 
 export const adminMetricas = (token) => chamar('admin-metrics', { token })
+
+export const vincularSessao = (token, sessaoToken, display_name) =>
+  chamar('session-claim', { metodo: 'POST', corpo: { token: sessaoToken, display_name }, token })
+
+export const meusResultados = (token) => chamar('meus-resultados', { token })

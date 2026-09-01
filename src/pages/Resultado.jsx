@@ -4,11 +4,18 @@ import { buscarResultado } from '../lib/api.js'
 import ReguaPolitica from '../components/ReguaPolitica.jsx'
 import MatrizPolitica from '../components/MatrizPolitica.jsx'
 import Facetas from '../components/Facetas.jsx'
+import Compartilhar from '../components/Compartilhar.jsx'
+import { useAuth } from '../lib/useAuth.js'
+import { vincularSessao } from '../lib/api.js'
+import { Link } from 'react-router-dom'
 
 const EIXOS = ['ECO', 'SOC', 'AUT', 'NAC', 'DEM', 'AMB']
 
 export default function Resultado() {
   const [params] = useSearchParams()
+  const { token: login } = useAuth()
+  const [guardado, setGuardado] = useState(false)
+  const [guardando, setGuardando] = useState(false)
   const [dados, setDados] = useState(null)
   const [erro, setErro] = useState(null)
   const token = params.get('token')
@@ -161,8 +168,46 @@ export default function Resultado() {
           </p>
         )}
 
+        <Compartilhar posicao={posicao} familia={a} />
+
+        {/* Guardar vem depois do resultado, nunca antes: o resultado e o
+            argumento para criar a conta. */}
+        <div className="cartao p-5">
+          <h3 className="font-serif text-xl">Guardar este resultado</h3>
+          {guardado ? (
+            <p className="mt-2 text-sm text-grafia">
+              Guardado. Ele aparece em <Link to="/meus" className="underline">seus resultados</Link>.
+            </p>
+          ) : login ? (
+            <>
+              <p className="mt-1 text-sm text-grafia">
+                Guarde na sua conta para voltar depois e comparar com respostas futuras.
+              </p>
+              <button className="botao-forte mt-3" disabled={guardando}
+                onClick={async () => {
+                  setGuardando(true)
+                  try { await vincularSessao(login, token); setGuardado(true) }
+                  catch (e) { setErro(e.message) }
+                  setGuardando(false)
+                }}>
+                {guardando ? 'Guardando...' : 'Guardar na minha conta'}
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="mt-1 text-sm leading-relaxed text-grafia">
+                Com uma conta você guarda este resultado, compara com amigos e vê o que muda
+                quando responder de novo daqui a um tempo.
+              </p>
+              <Link to={`/entrar?token=${token}`} className="botao-forte mt-3 inline-flex">
+                Criar conta e guardar
+              </Link>
+            </>
+          )}
+        </div>
+
         <p className="border-t border-borda pt-6 text-xs text-grafia">
-          Guarde este link: é por ele que você volta ao seu resultado.
+          Guarde este link: sem conta, é por ele que você volta ao seu resultado.
         </p>
       </div>
     </div>
