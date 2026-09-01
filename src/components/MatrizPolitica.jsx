@@ -11,7 +11,7 @@ const VISTAS = [
     x: { eixo: 'ECO', esq: 'Estado coordena', dir: 'Mercado coordena' },
     y: { eixo: 'SOC', baixo: 'Autonomia individual', cima: 'Tradição preserva', inverter: true },
     cantos: ['Estatista conservador', 'Liberal conservador', 'Estatista progressista', 'Liberal progressista'] },
-  { id: 'brasil', nome: 'Soberania × Poder',
+  { id: 'brasil', nome: 'Nação × Democracia',
     x: { eixo: 'NAC', esq: 'Integração global', dir: 'Soberania nacional' },
     y: { eixo: 'DEM', baixo: 'Instituições e freios', cima: 'Vontade popular direta' },
     cantos: ['Populista global', 'Populista nacional', 'Institucional global', 'Institucional nacional'] },

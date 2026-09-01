@@ -45,9 +45,9 @@ export default function ReguaPolitica({ posicao }) {
       {/* Os dois eixos que compõem o número. Sem isso, o 1-100 é uma caixa
           preta — e quem discorda do resultado não tem onde olhar. */}
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        <Componente titulo="Economia" valor={economia_1_100}
+        <Componente titulo="Posicionamento econômico" valor={economia_1_100}
                     esq="Estado coordena" dir="Mercado coordena" />
-        <Componente titulo="Costumes" valor={costumes_1_100}
+        <Componente titulo="Posicionamento nos costumes" valor={costumes_1_100}
                     esq="Progressista" dir="Conservador" />
       </div>
 

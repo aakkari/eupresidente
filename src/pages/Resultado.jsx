@@ -138,7 +138,7 @@ export default function Resultado() {
           </div>
         </Secao>
 
-        <Secao titulo="O detalhe dentro de cada eixo"
+        <Secao titulo="O detalhe dentro de cada posicionamento"
                subtitulo="Cada eixo se divide em três. É aqui que aparece onde você é radical e onde é morno — coisa que a nota do eixo esconde.">
           <Facetas facetVector={resultado.facet_vector} facetas={instrumento?.facets}
                    eixos={eixos} cor={cor} />
