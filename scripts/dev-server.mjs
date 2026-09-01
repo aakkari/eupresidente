@@ -95,6 +95,16 @@ const questions = tuplas(sql, 'questions').map(c => ({
   in_short: bool(c[10]), attention_pair: texto(c[11]), scored: true, in_long: true,
 }))
 
+// Override local opcional: enquanto o conteudo rico dos perfis vive so no
+// banco (ver divida no CLAUDE.md), este arquivo permite renderizar a pagina
+// completa em desenvolvimento. Nao versionado, nao usado em producao.
+if (process.env.FAMILIAS_JSON && existsSync(process.env.FAMILIAS_JSON)) {
+  const extra = JSON.parse(readFileSync(process.env.FAMILIAS_JSON, 'utf8'))
+  archetypes.length = 0
+  archetypes.push(...extra)
+  console.log(`familias vindas de ${process.env.FAMILIAS_JSON}`)
+}
+
 console.log(`seed lido: ${questions.length} perguntas, ${archetypes.length} arquetipos`)
 
 // --- estado em memoria -----------------------------------------------------

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { buscarResultado } from '../lib/api.js'
 import ReguaPolitica from '../components/ReguaPolitica.jsx'
+import MatrizPolitica from '../components/MatrizPolitica.jsx'
 
 const EIXOS = ['ECO', 'SOC', 'AUT', 'NAC', 'DEM', 'AMB']
 
@@ -19,7 +20,7 @@ export default function Resultado() {
   if (erro) return <Aviso>{erro}</Aviso>
   if (!dados) return <Aviso>Carregando...</Aviso>
 
-  const { resultado, arquetipo: a, arquetipo_secundario, instrumento, posicao } = dados
+  const { resultado, arquetipo: a, arquetipo_secundario, instrumento, posicao, todos_arquetipos } = dados
   const eixos = instrumento?.axes ?? {}
   const cor = a?.color ?? '#12141a'
 
@@ -36,6 +37,11 @@ export default function Resultado() {
 
       <div className="mx-auto max-w-3xl space-y-14 px-6 pt-10">
         <ReguaPolitica posicao={posicao} />
+
+        <Secao titulo="Onde você cai no mapa"
+               subtitulo="As 15 famílias são os pontos de referência; você é o ponto colorido. Troque os eixos para ver combinações que um quadrante só esconde.">
+          <MatrizPolitica vetor={resultado.vector} familias={todos_arquetipos} minhaFamilia={a} />
+        </Secao>
 
         <Secao titulo="O que isso quer dizer">
           <p className="texto">{a?.description}</p>
