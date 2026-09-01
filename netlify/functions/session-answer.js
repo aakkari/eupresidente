@@ -1,39 +1,36 @@
 import { admin } from './_lib/supabase.js'
-import { json, erro, corpo } from './_lib/http.js'
+import { json, erro, corpo, protegido } from './_lib/http.js'
 
-// Grava respostas em lote. Idempotente por (session_id, question_id), entao
-// voltar e mudar a resposta sobrescreve em vez de duplicar.
-export default async (req) => {
+// Grava respostas em lote, via funcao SQL. Idempotente por (sessao, pergunta),
+// entao voltar e mudar a resposta sobrescreve em vez de duplicar.
+//
+// A gravacao passa por RPC e nao pelo upsert do PostgREST: responses e
+// particionada, o ON CONFLICT roda no banco em uma unica round-trip, e o
+// question_id e validado contra o instrumento em vez de estourar a FK.
+export default protegido(async (req) => {
   if (req.method !== 'POST') return erro('metodo nao permitido', 405)
 
   const body = await corpo(req)
-  if (!body?.token || !Array.isArray(body.respostas)) return erro('token e respostas obrigatorios')
+  if (!body?.token || !Array.isArray(body.respostas))
+    return erro('token e respostas obrigatorios')
 
-  const sb = admin()
-  const { data: sessao } = await sb.from('sessions')
-    .select('id, status').eq('token', body.token).maybeSingle()
+  const respostas = body.respostas.filter(r =>
+    r && typeof r.question_id === 'string' &&
+    Number.isInteger(r.value) && r.value >= -2 && r.value <= 2)
 
-  if (!sessao) return erro('sessao nao encontrada', 404)
-  if (sessao.status !== 'in_progress') return erro('sessao ja encerrada', 409)
+  if (respostas.length === 0) return erro('nenhuma resposta valida')
 
-  const linhas = body.respostas
-    .filter(r => r && typeof r.question_id === 'string'
-                 && Number.isInteger(r.value) && r.value >= -2 && r.value <= 2)
-    .map(r => ({
-      session_id: sessao.id,
-      question_id: r.question_id,
-      value: r.value,
-      // answered_at vem do cliente porque o intervalo entre respostas e o que
-      // alimenta a deteccao de resposta apressada. E manipulavel — por isso e
-      // heuristica de qualidade, nao criterio de exclusao sozinho.
-      answered_at: r.answered_at ?? new Date().toISOString(),
-    }))
-
-  if (linhas.length === 0) return erro('nenhuma resposta valida')
-
-  const { error } = await sb.from('responses')
-    .upsert(linhas, { onConflict: 'session_id,question_id' })
-  if (error) return erro(error.message, 500)
-
-  return json({ gravadas: linhas.length })
-}
+  try {
+    const sb = admin()
+    const { data, error } = await sb.rpc('save_responses', {
+      p_token: body.token,
+      p_respostas: respostas,
+    })
+    if (error) return erro(error.message, 400)
+    return json({ gravadas: data ?? respostas.length })
+  } catch (e) {
+    // Sem isto, uma excecao aqui derruba a Function sem resposta e o browser
+    // so mostra "Failed to fetch", que nao diz nada a ninguem.
+    return erro(`falha ao gravar: ${e.message}`, 500)
+  }
+})

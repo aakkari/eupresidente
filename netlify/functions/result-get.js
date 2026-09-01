@@ -1,9 +1,9 @@
 import { admin } from './_lib/supabase.js'
-import { json, erro } from './_lib/http.js'
+import { json, erro, protegido } from './_lib/http.js'
 
 // Le o resultado pelo token da sessao. O token e a credencial: quem tem o
 // link ve o resultado. E por isso que ele e uuid v4 e nao um id sequencial.
-export default async (req) => {
+export default protegido(async (req) => {
   const token = new URL(req.url).searchParams.get('token')
   if (!token) return erro('token obrigatorio')
 
@@ -28,4 +28,4 @@ export default async (req) => {
     arquetipo_secundario: arquetipos.find(a => a.id === resultado.archetype_secondary_id) ?? null,
     todos_arquetipos: arquetipos,
   })
-}
+})

@@ -1,5 +1,5 @@
 import { exigirAdmin } from './_lib/auth.js'
-import { json, erro, corpo } from './_lib/http.js'
+import { json, erro, corpo, protegido } from './_lib/http.js'
 
 // Leitura e edicao do instrumento pelo admin.
 //
@@ -8,7 +8,7 @@ import { json, erro, corpo } from './_lib/http.js'
 // respostas antigas e novas significarem coisas diferentes sob o mesmo id, e
 // a base de pesquisa viraria lixo silenciosamente. Ver decisao 8 no CLAUDE.md.
 // O caminho para mudar um instrumento publicado e clonar em v2.
-export default async (req) => {
+export default protegido(async (req) => {
   const auth = await exigirAdmin(req)
   if (!auth.ok) return erro(auth.motivo, 401)
   const sb = auth.sb
@@ -55,4 +55,4 @@ export default async (req) => {
   }
 
   return erro('metodo nao permitido', 405)
-}
+})

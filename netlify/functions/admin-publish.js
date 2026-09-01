@@ -1,5 +1,5 @@
 import { exigirAdmin } from './_lib/auth.js'
-import { json, erro, corpo } from './_lib/http.js'
+import { json, erro, corpo, protegido } from './_lib/http.js'
 
 // Duas operacoes de ciclo de vida do instrumento.
 //
@@ -7,7 +7,7 @@ import { json, erro, corpo } from './_lib/http.js'
 // clonar:   cria a proxima versao a partir de uma publicada, copiando
 //           perguntas e arquetipos com novos ids prefixados. A v2 nasce
 //           inativa e editavel; a v1 continua no ar ate voce trocar.
-export default async (req) => {
+export default protegido(async (req) => {
   if (req.method !== 'POST') return erro('metodo nao permitido', 405)
   const auth = await exigirAdmin(req)
   if (!auth.ok) return erro(auth.motivo, 401)
@@ -79,4 +79,4 @@ export default async (req) => {
   }
 
   return erro('acao invalida')
-}
+})

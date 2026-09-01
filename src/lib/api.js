@@ -3,16 +3,30 @@
 const base = '/.netlify/functions'
 
 async function chamar(rota, { metodo = 'GET', corpo, token } = {}) {
-  const r = await fetch(`${base}/${rota}`, {
-    method: metodo,
-    headers: {
-      ...(corpo ? { 'content-type': 'application/json' } : {}),
-      ...(token ? { authorization: `Bearer ${token}` } : {}),
-    },
-    ...(corpo ? { body: JSON.stringify(corpo) } : {}),
-  })
-  const dados = await r.json().catch(() => ({}))
-  if (!r.ok) throw new Error(dados.erro || `falha em ${rota}`)
+  let r
+  try {
+    r = await fetch(`${base}/${rota}`, {
+      method: metodo,
+      headers: {
+        ...(corpo ? { 'content-type': 'application/json' } : {}),
+        ...(token ? { authorization: `Bearer ${token}` } : {}),
+      },
+      ...(corpo ? { body: JSON.stringify(corpo) } : {}),
+    })
+  } catch (e) {
+    // TypeError do fetch: a resposta nao chegou. Sem esta mensagem o usuario
+    // ve apenas "Failed to fetch", que nao diz qual chamada falhou.
+    throw new Error(`nao consegui falar com o servidor em ${rota} (${e.message})`)
+  }
+
+  const texto = await r.text().catch(() => '')
+  let dados = {}
+  try { dados = texto ? JSON.parse(texto) : {} } catch {
+    // Resposta que nao e JSON quase sempre e pagina de erro do Netlify.
+    if (!r.ok) throw new Error(`${rota} respondeu ${r.status}: ${texto.slice(0, 200)}`)
+  }
+
+  if (!r.ok) throw new Error(dados.erro || `${rota} respondeu ${r.status}`)
   return dados
 }
 

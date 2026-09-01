@@ -1,10 +1,10 @@
 import { admin } from './_lib/supabase.js'
-import { json, erro, corpo, hashIp, rateLimit } from './_lib/http.js'
+import { json, erro, corpo, hashIp, rateLimit, protegido } from './_lib/http.js'
 
 // Cria a sessao e devolve as perguntas do modo escolhido.
 // A sessao nasce anonima: so um token. Cadastro, se houver, vem depois de
 // responder — pedir antes derruba a taxa de conclusao.
-export default async (req) => {
+export default protegido(async (req) => {
   if (req.method !== 'POST') return erro('metodo nao permitido', 405)
 
   const body = await corpo(req) || {}
@@ -44,4 +44,4 @@ export default async (req) => {
   // axis vai junto so para o front agrupar visualmente. Direcao e peso ficam
   // no servidor: quem enxerga o gabarito consegue fabricar o resultado.
   return json({ token: sessao.token, instrumento, mode, perguntas })
-}
+})

@@ -1,9 +1,9 @@
 import { exigirAdmin } from './_lib/auth.js'
-import { json, erro } from './_lib/http.js'
+import { json, erro, protegido } from './_lib/http.js'
 
 // Painel de avaliacao do instrumento. Estas sao as metricas que dizem se as
 // perguntas estao funcionando — nao quantas pessoas responderam.
-export default async (req) => {
+export default protegido(async (req) => {
   const auth = await exigirAdmin(req)
   if (!auth.ok) return erro(auth.motivo, 401)
   const sb = auth.sb
@@ -49,4 +49,4 @@ export default async (req) => {
     neutral_rate_medio: neutras.length
       ? Number((neutras.reduce((s, v) => s + v, 0) / neutras.length).toFixed(3)) : null,
   })
-}
+})

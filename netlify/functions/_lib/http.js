@@ -6,6 +6,21 @@ export const json = (body, status = 200) =>
 
 export const erro = (msg, status = 400) => json({ erro: msg }, status)
 
+// Envolve uma rota para que excecao nenhuma escape.
+//
+// Uma Function que lanca sem responder faz o Netlify derrubar a conexao, e o
+// browser mostra apenas "Failed to fetch" — que nao diz de onde veio nem o
+// que aconteceu. Aqui vira um 500 com a mensagem real, que aparece na tela e
+// no log.
+export const protegido = (handler) => async (req, ctx) => {
+  try {
+    return await handler(req, ctx)
+  } catch (e) {
+    console.error('erro nao tratado:', e)
+    return erro(e?.message ? `erro interno: ${e.message}` : 'erro interno', 500)
+  }
+}
+
 export async function corpo(req) {
   try { return await req.json() } catch { return null }
 }

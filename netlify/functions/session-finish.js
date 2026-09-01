@@ -1,9 +1,9 @@
 import { admin } from './_lib/supabase.js'
-import { json, erro, corpo } from './_lib/http.js'
+import { json, erro, corpo, protegido } from './_lib/http.js'
 import { scoreSession } from './_lib/scoring.js'
 
 // Fecha a sessao e calcula o resultado. Deterministico do inicio ao fim.
-export default async (req) => {
+export default protegido(async (req) => {
   if (req.method !== 'POST') return erro('metodo nao permitido', 405)
 
   const body = await corpo(req)
@@ -91,4 +91,4 @@ export default async (req) => {
   }
 
   return json({ result_id: resultado.id, ...resultado })
-}
+})
