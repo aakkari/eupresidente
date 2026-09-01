@@ -108,6 +108,21 @@ if (process.env.FAMILIAS_JSON && existsSync(process.env.FAMILIAS_JSON)) {
 
 console.log(`seed lido: ${questions.length} perguntas, ${archetypes.length} arquetipos`)
 
+// Mesma ordenacao da Function de producao: agrupa por eixo e embaralha por
+// dentro, com semente na sessao para a ordem nao mudar ao recarregar.
+const ORDEM_EIXOS = ['ECO','SOC','AUT','NAC','DEM','AMB']
+function ordenar(perguntas, semente) {
+  let h = 0
+  for (const c of String(semente)) h = (h * 31 + c.charCodeAt(0)) % 2147483647
+  const rnd = () => (h = (h * 1103515245 + 12345) % 2147483647) / 2147483647
+  const misturar = xs => { const a = [...xs]
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]] }
+    return a }
+  const porEixo = {}
+  for (const p of perguntas) (porEixo[p.axis] ||= []).push(p)
+  return misturar(ORDEM_EIXOS.filter(e => porEixo[e]?.length)).flatMap(e => misturar(porEixo[e]))
+}
+
 // --- estado em memoria -----------------------------------------------------
 
 const sessoes = new Map()
@@ -124,9 +139,9 @@ const rotas = {
     const mode = body.mode === 'short' ? 'short' : 'long'
     const token = randomUUID()
     sessoes.set(token, { mode, respostas: {}, resultado: null })
-    const perguntas = questions
+    const perguntas = ordenar(questions
       .filter(q => mode === 'short' ? q.in_short : q.in_long)
-      .map(({ id, block, ord, body: b, axis }) => ({ id, block, ord, body: b, axis }))
+      .map(({ id, block, ord, body: b, axis, facet }) => ({ id, block, ord, body: b, axis, facet })), token)
     json(res, { token, mode, instrumento, perguntas })
   },
 

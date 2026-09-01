@@ -4,6 +4,42 @@ import { json, erro, corpo, hashIp, rateLimit, protegido } from './_lib/http.js'
 // Cria a sessao e devolve as perguntas do modo escolhido.
 // A sessao nasce anonima: so um token. Cadastro, se houver, vem depois de
 // responder — pedir antes derruba a taxa de conclusao.
+// Agrupa por eixo e embaralha por dentro.
+//
+// Agrupar reduz troca de contexto: a pessoa passa alguns minutos pensando em
+// economia antes de mudar de assunto, e responde melhor. Embaralhar por dentro
+// evita os dois efeitos colaterais de agrupar demais — a consistencia inflada
+// (quem ve cinco itens seguidos da mesma faceta lembra do que respondeu e
+// tenta ficar coerente, mesmo quando nao e) e o gabarito obvio (itens da mesma
+// faceta com direcoes alternadas entregam o que esta sendo medido).
+//
+// A ordem dos eixos tambem varia por sessao: sempre comecar por economia
+// enviesaria o conjunto, porque as primeiras respostas sao as mais atentas.
+const ORDEM_EIXOS = ['ECO', 'SOC', 'AUT', 'NAC', 'DEM', 'AMB']
+
+function ordenar(perguntas, semente) {
+  // Embaralhamento deterministico pela sessao: recarregar a pagina nao
+  // remonta o questionario numa ordem diferente.
+  let h = 0
+  for (const c of String(semente)) h = (h * 31 + c.charCodeAt(0)) % 2147483647
+  const rnd = () => (h = (h * 1103515245 + 12345) % 2147483647) / 2147483647
+
+  const misturar = xs => {
+    const a = [...xs]
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1))
+      ;[a[i], a[j]] = [a[j], a[i]]
+    }
+    return a
+  }
+
+  const porEixo = {}
+  for (const p of perguntas) (porEixo[p.axis] ||= []).push(p)
+
+  const eixos = misturar(ORDEM_EIXOS.filter(e => porEixo[e]?.length))
+  return eixos.flatMap(e => misturar(porEixo[e]))
+}
+
 export default protegido(async (req) => {
   if (req.method !== 'POST') return erro('metodo nao permitido', 405)
 
@@ -33,15 +69,18 @@ export default protegido(async (req) => {
   if (eSess) return erro(eSess.message, 500)
 
   let q = sb.from('questions')
-    .select('id, block, ord, body, axis')
+    .select('id, block, ord, body, axis, facet')
     .eq('instrument_id', instrumento.id)
-    .order('block').order('ord')
   q = mode === 'short' ? q.eq('in_short', true) : q.eq('in_long', true)
 
   const { data: perguntas, error: ePerg } = await q
   if (ePerg) return erro(ePerg.message, 500)
 
-  // axis vai junto so para o front agrupar visualmente. Direcao e peso ficam
-  // no servidor: quem enxerga o gabarito consegue fabricar o resultado.
-  return json({ token: sessao.token, instrumento, mode, perguntas })
+  // axis vai junto so para o front agrupar visualmente. Direcao, peso e
+  // intensidade ficam no servidor: quem enxerga o gabarito fabrica o
+  // resultado e envenena a base de pesquisa.
+  return json({
+    token: sessao.token, instrumento, mode,
+    perguntas: ordenar(perguntas ?? [], sessao.id),
+  })
 })

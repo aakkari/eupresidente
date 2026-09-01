@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { iniciarSessao, salvarRespostas, finalizarSessao } from '../lib/api.js'
 
@@ -9,6 +9,20 @@ const OPCOES = [
   { v:  1, r: 'Concordo' },
   { v:  2, r: 'Concordo totalmente' },
 ]
+
+const CHAVE = 'eup:rascunho'
+
+// Rascunho local. O envio ao servidor e a fonte da verdade; isto aqui existe
+// para a pessoa reabrir a aba e continuar de onde parou sem depender de conta.
+const lerRascunho = () => {
+  try { return JSON.parse(localStorage.getItem(CHAVE) || 'null') } catch { return null }
+}
+const gravarRascunho = (d) => {
+  try { localStorage.setItem(CHAVE, JSON.stringify(d)) } catch { /* modo privado */ }
+}
+const limparRascunho = () => {
+  try { localStorage.removeItem(CHAVE) } catch { /* modo privado */ }
+}
 
 export default function Quiz() {
   const [params] = useSearchParams()
@@ -22,43 +36,97 @@ export default function Quiz() {
   const [erro, setErro] = useState(null)
   const [enviando, setEnviando] = useState(false)
   const [consentimento, setConsentimento] = useState(false)
+  const [salvandoAgora, setSalvandoAgora] = useState(false)
+  const pendentes = useRef([])
 
   useEffect(() => {
-    iniciarSessao(modo, Object.fromEntries(params)).then(setSessao).catch(e => setErro(e.message))
+    const rascunho = lerRascunho()
+    // Retoma sozinho quando e o mesmo modo: perguntar "quer continuar?" para
+    // quem so recarregou a pagina e atrito sem ganho.
+    if (rascunho?.modo === modo && rascunho.token && rascunho.perguntas?.length) {
+      setSessao({ token: rascunho.token, perguntas: rascunho.perguntas, instrumento: rascunho.instrumento, mode: modo })
+      setRespostas(rascunho.respostas ?? {})
+      setI(rascunho.i ?? 0)
+      return
+    }
+    iniciarSessao(modo, Object.fromEntries(params))
+      .then(s => {
+        setSessao(s)
+        gravarRascunho({ modo, token: s.token, perguntas: s.perguntas, instrumento: s.instrumento, respostas: {}, i: 0 })
+      })
+      .catch(e => setErro(e.message))
   }, [modo])
 
   const perguntas = sessao?.perguntas ?? []
   const atual = perguntas[i]
   const fim = sessao && i >= perguntas.length
-  const progresso = perguntas.length ? Math.round((i / perguntas.length) * 100) : 0
+
+  // Envia em lote curto, e nao a cada clique: 90 requisicoes numa sessao
+  // seriam desperdicio, e perder as ultimas duas respostas por fechar a aba
+  // no meio e um risco pequeno perto de perder as noventa.
+  const descarregar = useCallback(async (forcar = false) => {
+    if (!sessao?.token || pendentes.current.length === 0) return
+    if (!forcar && pendentes.current.length < 3) return
+    const lote = pendentes.current
+    pendentes.current = []
+    setSalvandoAgora(true)
+    try { await salvarRespostas(sessao.token, lote) }
+    catch { pendentes.current = [...lote, ...pendentes.current] }  // devolve para tentar de novo
+    setSalvandoAgora(false)
+  }, [sessao])
+
+  // Antes de fechar a aba, tenta descarregar o que sobrou.
+  useEffect(() => {
+    const aoSair = () => { descarregar(true) }
+    window.addEventListener('pagehide', aoSair)
+    return () => window.removeEventListener('pagehide', aoSair)
+  }, [descarregar])
 
   function responder(valor) {
-    setRespostas(r => ({ ...r, [atual.id]: valor }))
-    setTempos(t => ({ ...t, [atual.id]: new Date().toISOString() }))
+    const quando = new Date().toISOString()
+    const novas = { ...respostas, [atual.id]: valor }
+    setRespostas(novas)
+    setTempos(t => ({ ...t, [atual.id]: quando }))
+    pendentes.current.push({ question_id: atual.id, value: valor, answered_at: quando })
+    gravarRascunho({ modo, token: sessao.token, perguntas, instrumento: sessao.instrumento, respostas: novas, i: i + 1 })
     setI(n => n + 1)
+    descarregar()
   }
-
-  const prontas = useMemo(
-    () => Object.entries(respostas).map(([question_id, value]) =>
-      ({ question_id, value, answered_at: tempos[question_id] })),
-    [respostas, tempos])
 
   async function concluir() {
     setEnviando(true); setErro(null)
     try {
-      await salvarRespostas(sessao.token, prontas)
+      await descarregar(true)
+      // Reenvia tudo por seguranca: e idempotente por (sessao, pergunta), e o
+      // custo de uma requisicao a mais e menor que o de perder uma resposta.
+      const todas = Object.entries(respostas).map(([question_id, value]) =>
+        ({ question_id, value, answered_at: tempos[question_id] }))
+      if (todas.length) await salvarRespostas(sessao.token, todas)
       await finalizarSessao(sessao.token, {
         consentimento_pesquisa: modo === 'long' ? consentimento : false,
         policy_version: 'v1',
       })
+      limparRascunho()
       ir(`/resultado?token=${sessao.token}`)
     } catch (e) {
       setErro(e.message); setEnviando(false)
     }
   }
 
-  if (erro && !sessao) return <Aviso texto={erro} />
-  if (!sessao) return <Aviso texto="Carregando..." />
+  // Segmentos por eixo: mostram que o assunto muda, sem dizer qual e — o
+  // nome do tema no topo faria a pessoa responder o rotulo, nao a pergunta.
+  const segmentos = useMemo(() => {
+    const out = []
+    for (const p of perguntas) {
+      const ultimo = out[out.length - 1]
+      if (ultimo && ultimo.axis === p.axis) ultimo.n++
+      else out.push({ axis: p.axis, n: 1 })
+    }
+    return out
+  }, [perguntas])
+
+  if (erro && !sessao) return <Aviso>{erro}</Aviso>
+  if (!sessao) return <Aviso>Carregando...</Aviso>
 
   if (fim) return (
     <div className="mx-auto max-w-xl px-6 py-20">
@@ -89,13 +157,27 @@ export default function Quiz() {
   return (
     <div className="mx-auto max-w-xl px-6 py-12">
       <div className="mb-8">
-        <div className="mb-2 flex justify-between text-xs text-grafia">
+        <div className="mb-2 flex items-center justify-between text-xs text-grafia">
           <span>{i + 1} de {perguntas.length}</span>
-          <button onClick={() => setI(n => Math.max(0, n - 1))} disabled={i === 0}
-                  className="disabled:opacity-30">voltar</button>
+          <span className="flex items-center gap-3">
+            {salvandoAgora && <span className="text-[11px]">salvando…</span>}
+            <button onClick={() => setI(n => Math.max(0, n - 1))} disabled={i === 0}
+                    className="disabled:opacity-30">voltar</button>
+          </span>
         </div>
-        <div className="h-1 rounded bg-borda">
-          <div className="h-1 rounded bg-tinta transition-all" style={{ width: `${progresso}%` }} />
+
+        <div className="flex gap-1">
+          {segmentos.map((seg, s) => {
+            const antes = segmentos.slice(0, s).reduce((t, x) => t + x.n, 0)
+            const feitas = Math.max(0, Math.min(seg.n, i - antes))
+            return (
+              <div key={s} className="h-1 flex-1 overflow-hidden rounded bg-borda"
+                   style={{ flexGrow: seg.n }}>
+                <div className="h-1 bg-tinta transition-all"
+                     style={{ width: `${(feitas / seg.n) * 100}%` }} />
+              </div>
+            )
+          })}
         </div>
       </div>
 
@@ -112,8 +194,12 @@ export default function Quiz() {
           </button>
         ))}
       </div>
+
+      <p className="mt-8 text-xs text-grafia">
+        Suas respostas são salvas conforme você avança. Pode fechar e voltar depois.
+      </p>
     </div>
   )
 }
 
-const Aviso = ({ texto }) => <p className="mx-auto max-w-xl px-6 py-20 text-grafia">{texto}</p>
+const Aviso = ({ children }) => <p className="mx-auto max-w-xl px-6 py-20 text-grafia">{children}</p>
