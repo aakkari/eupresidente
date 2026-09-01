@@ -1,5 +1,6 @@
 import { admin } from './_lib/supabase.js'
 import { json, erro, protegido } from './_lib/http.js'
+import { posicaoPolitica } from './_lib/scoring.js'
 
 // Le o resultado pelo token da sessao. O token e a credencial: quem tem o
 // link ve o resultado. E por isso que ele e uuid v4 e nao um id sequencial.
@@ -22,6 +23,9 @@ export default protegido(async (req) => {
   ])
 
   return json({
+    // Calculado na leitura, nao gravado: e deterministico a partir do vetor,
+    // entao persistir seria uma copia que pode divergir da formula.
+    posicao: posicaoPolitica(resultado.vector),
     resultado,
     instrumento,
     arquetipo: arquetipos.find(a => a.id === resultado.archetype_id) ?? null,

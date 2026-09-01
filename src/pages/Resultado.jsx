@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { buscarResultado } from '../lib/api.js'
 import EixoBarra from '../components/EixoBarra.jsx'
+import ReguaPolitica from '../components/ReguaPolitica.jsx'
 
 const EIXOS = ['ECO', 'SOC', 'AUT', 'NAC', 'DEM', 'AMB']
 
@@ -19,12 +20,14 @@ export default function Resultado() {
   if (erro) return <p className="mx-auto max-w-2xl px-6 py-20 text-grafia">{erro}</p>
   if (!dados) return <p className="mx-auto max-w-2xl px-6 py-20 text-grafia">Carregando...</p>
 
-  const { resultado, arquetipo, arquetipo_secundario, instrumento } = dados
+  const { resultado, arquetipo, arquetipo_secundario, instrumento, posicao } = dados
   const eixos = instrumento?.axes ?? {}
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
-      <p className="rotulo">Seu resultado</p>
+      <ReguaPolitica posicao={posicao} />
+
+      <p className="rotulo mt-12">Sua família política</p>
 
       <div className="mt-4 flex items-start gap-4">
         <div className="mt-1.5 h-10 w-1.5 shrink-0 rounded"

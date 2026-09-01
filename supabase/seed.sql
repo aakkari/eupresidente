@@ -6,13 +6,13 @@
 
 insert into instruments (id, label, axes, axis_weights, active) values (
 'br-v1',
-'Eu Presidente — Brasil, versao 1',
+'Eu Presidente — Brasil, versão 1',
 '{
   "ECO": {"nome":"Economia",   "neg":"Estado coordena",       "pos":"Mercado coordena"},
-  "SOC": {"nome":"Costumes",   "neg":"Tradicao preserva",     "pos":"Autonomia individual"},
-  "AUT": {"nome":"Autoridade", "neg":"Liberdade civil",       "pos":"Ordem e coercao"},
-  "NAC": {"nome":"Fronteira",  "neg":"Integracao global",     "pos":"Soberania nacional"},
-  "DEM": {"nome":"Poder",      "neg":"Instituicoes e freios", "pos":"Vontade popular direta"},
+  "SOC": {"nome":"Costumes",   "neg":"Tradição preserva",     "pos":"Autonomia individual"},
+  "AUT": {"nome":"Autoridade", "neg":"Liberdade civil",       "pos":"Ordem e coerção"},
+  "NAC": {"nome":"Fronteira",  "neg":"Integração global",     "pos":"Soberania nacional"},
+  "DEM": {"nome":"Poder",      "neg":"Instituições e freios", "pos":"Vontade popular direta"},
   "AMB": {"nome":"Horizonte",  "neg":"Crescimento hoje",      "pos":"Sustentabilidade longa"}
 }'::jsonb,
 '{"ECO":1.0,"SOC":1.0,"AUT":1.0,"NAC":0.9,"DEM":1.0,"AMB":0.9}'::jsonb,

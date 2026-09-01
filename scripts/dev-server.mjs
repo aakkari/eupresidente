@@ -9,7 +9,7 @@ import { createServer } from 'node:http'
 import { readFileSync, existsSync } from 'node:fs'
 import { extname, join } from 'node:path'
 import { randomUUID } from 'node:crypto'
-import { scoreSession } from '../netlify/functions/_lib/scoring.js'
+import { scoreSession, posicaoPolitica } from '../netlify/functions/_lib/scoring.js'
 
 // --- leitura do seed -------------------------------------------------------
 
@@ -144,6 +144,7 @@ const rotas = {
     const s = sessoes.get(q.get('token'))
     if (!s?.resultado) return json(res, { erro: 'resultado ainda nao calculado' }, 404)
     json(res, {
+      posicao: posicaoPolitica(s.resultado.vector),
       resultado: s.resultado,
       instrumento,
       arquetipo: archetypes.find(a => a.id === s.resultado.archetype_id) ?? null,
