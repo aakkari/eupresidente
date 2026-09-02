@@ -135,7 +135,8 @@ const nivelDemo = process.env.NIVEL_DEMO || 'anonimo'
 const config = {
   assinatura: { ativa: false, gateway: null, preco_centavos: 4990, moeda: 'BRL',
                 ciclo: 'anual', titulo: 'Assinatura anual',
-                descricao: 'Acesso ao report completo por um ano.' },
+                descricao: 'Acesso ao report completo por um ano.',
+                link_pagamento: 'https://mpago.la/exemplo' },
   // TRAVAS_JSON permite ver a variante paga sem banco: por exemplo
   // TRAVAS_JSON='{"paises":"assinante"}' com NIVEL_DEMO=cadastrado.
   travas: { ...PADRAO_TRAVAS, ...(process.env.TRAVAS_JSON ? JSON.parse(process.env.TRAVAS_JSON) : {}) },
@@ -264,7 +265,11 @@ const rotas = {
     })
   },
 
-  'admin-assinantes': (_body, _q, res) => json(res, { assinantes: [] }),
+  'admin-assinantes': (_body, _q, res) => json(res, {
+    assinantes: [],
+    esperando: [{ user_id: 'u1', email: 'ana@exemplo.com', nome: 'Ana Prado',
+                  valor_centavos: 4990, desde: new Date(Date.now() - 5 * 36e5).toISOString() }],
+  }),
 
   'admin-resumo': (_body, _q, res) => {
     const membros = comunidadeDemo.membros()

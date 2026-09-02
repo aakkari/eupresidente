@@ -31,20 +31,48 @@ export default protegido(async (req) => {
       plano: {
         titulo: plano.titulo, descricao: plano.descricao,
         preco_centavos: plano.preco_centavos, moeda: plano.moeda, ciclo: plano.ciclo,
-        // A venda so aparece quando esta ligada no admin E existe gateway para
-        // cobrar. Ligar no admin sem chave nenhuma nao pode abrir a loja.
-        a_venda: Boolean(plano.ativa) && podeCobrar(plano.gateway),
+        // A venda abre quando esta ligada no admin E existe por onde pagar —
+        // um gateway com chave, ou um link de pagamento pronto. Ligar sem
+        // nenhum dos dois nao pode abrir a loja.
+        a_venda: Boolean(plano.ativa) && (podeCobrar(plano.gateway) || Boolean(plano.link_pagamento)),
+        // Por link, o acesso nao e automatico: alguem libera no admin depois
+        // que o pagamento cai. A tela precisa saber para dizer a verdade em
+        // vez de prometer liberacao na hora.
+        manual: !podeCobrar(plano.gateway) && Boolean(plano.link_pagamento),
       },
     })
   }
 
   if (req.method === 'POST') {
     if (!plano.ativa) return erro('assinatura nao esta a venda', 409)
-    const { url } = await criarCheckout({
-      gateway: plano.gateway, uid, email: auth.user.email,
-      precoCentavos: plano.preco_centavos, moeda: plano.moeda,
-    })
-    return json({ url })
+
+    if (podeCobrar(plano.gateway)) {
+      const { url } = await criarCheckout({
+        gateway: plano.gateway, uid, email: auth.user.email,
+        precoCentavos: plano.preco_centavos, moeda: plano.moeda,
+      })
+      return json({ url })
+    }
+
+    if (!plano.link_pagamento) return erro('nao ha meio de pagamento configurado', 503)
+
+    // Registra a intencao antes de mandar para o link. Sem isso, quem paga
+    // some do nosso lado ate aparecer no extrato do gateway — e o admin fica
+    // sem saber quem esta esperando liberacao.
+    //
+    // Uma linha pendente por vez: clicar tres vezes no botao nao pode virar
+    // tres cobrancas na fila do admin.
+    const { data: jaTem } = await sb.from('payments')
+      .select('id').eq('user_id', uid).eq('status', 'pendente').limit(1).maybeSingle()
+
+    if (!jaTem) {
+      await sb.from('payments').insert({
+        user_id: uid, amount_cents: plano.preco_centavos, currency: plano.moeda || 'BRL',
+        status: 'pendente', gateway: 'link', method: 'link de pagamento',
+      })
+    }
+
+    return json({ url: plano.link_pagamento, manual: true })
   }
 
   if (req.method === 'DELETE') {

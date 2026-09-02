@@ -22,12 +22,15 @@ async function chamar(token, metodo, corpo) {
 export default function Assinantes() {
   const { token } = useOutletContext()
   const [lista, setLista] = useState(null)
+  const [fila, setFila] = useState([])
   const [email, setEmail] = useState('')
   const [meses, setMeses] = useState(12)
   const [erro, setErro] = useState(null)
   const [ocupado, setOcupado] = useState(false)
 
-  const recarregar = () => chamar(token, 'GET').then(d => setLista(d.assinantes)).catch(e => setErro(e.message))
+  const recarregar = () => chamar(token, 'GET')
+    .then(d => { setLista(d.assinantes); setFila(d.esperando ?? []) })
+    .catch(e => setErro(e.message))
   useEffect(() => { recarregar() }, [token])
 
   async function conceder(e) {
@@ -47,6 +50,39 @@ export default function Assinantes() {
 
   return (
     <div className="space-y-8">
+      {fila.length > 0 && (
+        <section>
+          <h2 className="subtitulo text-2xl">Esperando liberação</h2>
+          <p className="mb-3 mt-1 max-w-2xl text-sm leading-relaxed text-grafia">
+            Clicaram em assinar pelo link de pagamento e ainda não têm acesso. Confira no
+            painel do meio de pagamento se o valor caiu e libere aqui — um clique preenche o
+            e-mail no formulário abaixo.
+          </p>
+          <div className="cartao divide-y divide-borda">
+            {fila.map(p => (
+              <div key={p.user_id} className="flex flex-wrap items-center gap-3 p-4 text-sm">
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium">{p.nome || p.email || p.user_id}</div>
+                  {p.nome && p.email && <div className="text-xs text-grafia">{p.email}</div>}
+                </div>
+                <span className="shrink-0 tabular-nums">
+                  {(p.valor_centavos / 100).toLocaleString('pt-BR',
+                    { style: 'currency', currency: 'BRL' })}
+                </span>
+                <span className="shrink-0 text-xs text-tenue">
+                  há {Math.max(1, Math.round((Date.now() - new Date(p.desde)) / 36e5))}h
+                </span>
+                {p.email && (
+                  <button onClick={() => setEmail(p.email)} className="botao-leve shrink-0 text-xs">
+                    Preencher abaixo
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section>
         <h2 className="subtitulo text-2xl">Liberar assinatura</h2>
         <form onSubmit={conceder} className="cartao mt-4 flex flex-wrap items-end gap-3 p-5">

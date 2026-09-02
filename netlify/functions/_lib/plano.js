@@ -64,6 +64,12 @@ export function podeUsar(recurso, recursos, nivel) {
 export const PADRAO_ASSINATURA = {
   ativa: false, gateway: null, preco_centavos: 4990, moeda: 'BRL', ciclo: 'anual',
   titulo: 'Assinatura anual', descricao: 'Acesso ao report completo por um ano.',
+  // Link de pagamento pronto (Mercado Pago, Stripe), criado no painel do
+  // gateway sem integracao nenhuma. E o caminho mais curto entre "quero vender"
+  // e "vendi": a pessoa paga no link, e o acesso e liberado a mao no admin.
+  // Quando a integracao de verdade existir, o link continua valendo para
+  // cortesia, cobranca avulsa e venda por fora.
+  link_pagamento: null,
 }
 
 export async function configuracao(sb, chave, padrao = {}) {

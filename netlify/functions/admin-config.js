@@ -43,6 +43,15 @@ export default protegido(async (req) => {
         return erro('preco invalido')
       if (a.gateway && !GATEWAYS.includes(a.gateway)) return erro('gateway desconhecido')
 
+      // So https, e so URL de verdade: um link torto aqui manda quem quer
+      // pagar para lugar nenhum, e a pessoa nao volta.
+      const link = String(a.link_pagamento ?? '').trim() || null
+      if (link) {
+        let u
+        try { u = new URL(link) } catch { return erro('link de pagamento invalido') }
+        if (u.protocol !== 'https:') return erro('o link de pagamento precisa ser https')
+      }
+
       gravar.push({
         key: 'assinatura', updated_at: agora, updated_by: auth.user.id,
         value: {
@@ -53,6 +62,7 @@ export default protegido(async (req) => {
           ciclo: a.ciclo === 'mensal' ? 'mensal' : 'anual',
           titulo: String(a.titulo ?? '').slice(0, 80) || 'Assinatura anual',
           descricao: String(a.descricao ?? '').slice(0, 240),
+          link_pagamento: link,
         },
       })
     }

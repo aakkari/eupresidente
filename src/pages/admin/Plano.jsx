@@ -36,8 +36,9 @@ export default function Plano() {
     } catch (e) { setEstado(null); setErro(e.message) }
   }
 
-  const podeVender = assinatura.gateway && gateways_disponiveis.includes(assinatura.gateway) &&
-                     assinatura.gateway !== 'manual'
+  const podeVender = Boolean(assinatura.link_pagamento) ||
+                     (assinatura.gateway && gateways_disponiveis.includes(assinatura.gateway) &&
+                      assinatura.gateway !== 'manual')
 
   return (
     <div className="space-y-10">
@@ -96,6 +97,21 @@ export default function Plano() {
             </div>
           </div>
 
+          <div>
+            <label className="rotulo">Link de pagamento</label>
+            <input className="campo mt-1.5" value={assinatura.link_pagamento ?? ''}
+                   placeholder="https://mpago.la/..."
+                   onChange={e => set('link_pagamento')(e.target.value)} />
+            <p className="mt-1.5 max-w-2xl text-xs leading-relaxed text-grafia">
+              O caminho mais curto para vender sem integração: crie um link de pagamento no
+              painel do Mercado Pago ou do Stripe e cole aqui. Com ele preenchido, o botão de
+              assinar aparece mesmo sem gateway configurado — a pessoa paga no link e{' '}
+              <strong className="text-tinta">você libera o acesso em Assinantes</strong>, onde
+              ela entra numa fila de espera assim que clica. Quando a cobrança automática
+              existir, o link continua servindo para venda avulsa e cortesia.
+            </p>
+          </div>
+
           <label className="flex items-start gap-2.5 text-sm">
             <input type="checkbox" className="mt-1" checked={Boolean(assinatura.ativa)}
                    onChange={e => set('ativa')(e.target.checked)} />
@@ -106,7 +122,7 @@ export default function Plano() {
                   {/* Ligar sem gateway nao pode abrir a loja: o botao levaria a
                       um erro. A trava paga continua valendo — o que nao existe
                       e o caminho para pagar. */}
-                  Sem um meio de pagamento com chave configurada, o botão de assinar não
+                  Sem link de pagamento nem gateway com chave, o botão de assinar não
                   aparece para ninguém. A trava continua valendo, e você pode liberar
                   assinaturas na mão em Assinantes.
                 </span>

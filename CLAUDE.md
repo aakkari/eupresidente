@@ -239,6 +239,24 @@ funciona.
 
 ---
 
+## Vender antes de integrar: link de pagamento
+
+`app_settings.assinatura.link_pagamento` guarda um link pronto (Mercado Pago,
+Stripe), criado no painel do gateway sem uma linha de código. Com ele
+preenchido, o botão de assinar aparece mesmo sem gateway: a pessoa paga no
+link, entra numa fila em `/admin/assinantes`, e alguém libera o acesso.
+
+Duas coisas mantêm isso honesto. A tela **diz** que a liberação não é
+automática, em vez de prometer acesso na hora. E clicar em assinar grava uma
+linha `pendente` em `payments` — sem ela, quem paga some do nosso lado até
+aparecer no extrato do gateway, e o admin fica sem saber quem está esperando.
+Liberar a pessoa converte essa linha em `pago`, então a fila esvazia sozinha.
+
+Quando a cobrança automática existir, o link continua servindo para venda
+avulsa, imprensa e cortesia.
+
+---
+
 ## Pendente: meio de pagamento
 
 A assinatura existe inteira — configuração, trava paga, histórico, cancelamento

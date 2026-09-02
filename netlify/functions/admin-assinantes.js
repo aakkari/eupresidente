@@ -13,23 +13,41 @@ export default protegido(async (req) => {
   const sb = auth.sb
 
   if (req.method === 'GET') {
-    const { data: assinaturas } = await sb.from('subscriptions')
-      .select('*').order('updated_at', { ascending: false }).limit(200)
+    const [{ data: assinaturas }, { data: pendentes }] = await Promise.all([
+      sb.from('subscriptions').select('*').order('updated_at', { ascending: false }).limit(200),
+      // Quem clicou em assinar por link e ainda nao foi liberado. E a fila de
+      // trabalho desta tela enquanto a cobranca nao e automatica.
+      sb.from('payments').select('user_id, amount_cents, created_at')
+        .eq('status', 'pendente').order('created_at', { ascending: false }).limit(100),
+    ])
 
-    const ids = (assinaturas ?? []).map(a => a.user_id)
+    const ids = [...new Set([...(assinaturas ?? []).map(a => a.user_id),
+                             ...(pendentes ?? []).map(p => p.user_id)])]
     const emails = await emailsDe(sb, ids)
     const { data: perfis } = ids.length
       ? await sb.from('profiles').select('user_id, full_name, display_name').in('user_id', ids)
       : { data: [] }
     const porId = Object.fromEntries((perfis ?? []).map(p => [p.user_id, p]))
 
+    const vigente = (a) => ['ativa', 'cancelada'].includes(a.status) &&
+                           a.period_end && new Date(a.period_end).getTime() > Date.now()
+
     return json({
+      // Fila: quem pagou pelo link e ainda nao tem acesso vigente.
+      esperando: (pendentes ?? [])
+        .filter(p => !(assinaturas ?? []).some(a => a.user_id === p.user_id && vigente(a)))
+        .map(p => ({
+          user_id: p.user_id,
+          email: emails[p.user_id] ?? null,
+          nome: porId[p.user_id]?.full_name ?? porId[p.user_id]?.display_name ?? null,
+          valor_centavos: p.amount_cents,
+          desde: p.created_at,
+        })),
       assinantes: (assinaturas ?? []).map(a => ({
         ...a,
         email: emails[a.user_id] ?? null,
         nome: porId[a.user_id]?.full_name ?? porId[a.user_id]?.display_name ?? null,
-        vigente: ['ativa', 'cancelada'].includes(a.status) &&
-                 a.period_end && new Date(a.period_end).getTime() > Date.now(),
+        vigente: vigente(a),
       })),
     })
   }
@@ -53,12 +71,24 @@ export default protegido(async (req) => {
     }, { onConflict: 'user_id' })
     if (error) return erro(error.message, 400)
 
-    // Registro de valor zero no historico: a pessoa abre a conta e ve de onde
-    // veio o acesso dela, em vez de uma assinatura que apareceu do nada.
-    await sb.from('payments').insert({
-      user_id: uid, amount_cents: 0, currency: 'BRL', status: 'pago',
-      gateway: 'manual', method: 'cortesia', paid_at: inicio.toISOString(),
-    })
+    // Se a pessoa veio pelo link de pagamento, a linha pendente dela vira
+    // paga — e a fila de espera do admin esvazia sozinha ao liberar.
+    const { data: pendente } = await sb.from('payments')
+      .select('id').eq('user_id', uid).eq('status', 'pendente')
+      .order('created_at', { ascending: false }).limit(1).maybeSingle()
+
+    if (pendente) {
+      await sb.from('payments').update({ status: 'pago', paid_at: inicio.toISOString() })
+        .eq('id', pendente.id)
+    } else {
+      // Sem pendencia, e cortesia: registro de valor zero para a pessoa abrir
+      // a conta e ver de onde veio o acesso, em vez de uma assinatura que
+      // apareceu do nada.
+      await sb.from('payments').insert({
+        user_id: uid, amount_cents: 0, currency: 'BRL', status: 'pago',
+        gateway: 'manual', method: 'cortesia', paid_at: inicio.toISOString(),
+      })
+    }
 
     return json({ ok: true, vale_ate: fim.toISOString() })
   }

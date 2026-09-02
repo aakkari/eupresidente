@@ -164,6 +164,7 @@ function Assinatura({ conta, token, aoMudar }) {
   const [ocupado, setOcupado] = useState(false)
   const [erro, setErro] = useState(null)
   const [confirmando, setConfirmando] = useState(false)
+  const [avisado, setAvisado] = useState(false)
 
   if (!conta) return null
 
@@ -175,8 +176,15 @@ function Assinatura({ conta, token, aoMudar }) {
   async function comecar() {
     setOcupado(true); setErro(null)
     try {
-      const { url } = await assinar(token)
-      window.location.href = url
+      const r = await assinar(token)
+      if (r.manual) {
+        // Aba nova, e nao troca de pagina: a pessoa volta para ca e encontra a
+        // instrucao do que acontece depois, em vez de uma tela em branco.
+        window.open(r.url, '_blank', 'noopener')
+        setAvisado(true); setOcupado(false)
+      } else {
+        window.location.href = r.url
+      }
     } catch (e) { setErro(e.message); setOcupado(false) }
   }
 
@@ -237,9 +245,18 @@ function Assinatura({ conta, token, aoMudar }) {
               )}
             </>
           ) : plano.a_venda ? (
-            <button onClick={comecar} disabled={ocupado} className="botao-forte">
-              {ocupado ? 'Abrindo...' : `Assinar por ${preco}`}
-            </button>
+            <>
+              <button onClick={comecar} disabled={ocupado} className="botao-forte">
+                {ocupado ? 'Abrindo...' : `Assinar por ${preco}`}
+              </button>
+              {plano.manual && (
+                <p className="mt-3 max-w-xl text-sm leading-relaxed text-grafia">
+                  {avisado
+                    ? 'Abrimos o pagamento numa aba nova. Assim que ele cair, liberamos seu acesso e você recebe um aviso — costuma ser no mesmo dia. Se demorar mais que isso, fale comigo.'
+                    : 'O pagamento abre numa página do meio de pagamento. A liberação ainda não é automática: assim que o valor cair, seu acesso é liberado — normalmente no mesmo dia.'}
+                </p>
+              )}
+            </>
           ) : (
             // Nao inventar um botao que leva a erro: enquanto o meio de
             // pagamento nao existe, a tela diz o que e, e nao finge uma loja.
