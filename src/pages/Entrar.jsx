@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { getSupabase, temSupabase } from '../lib/supabase.js'
 import { vincularSessao } from '../lib/api.js'
+import { emPortugues } from '../lib/erroAuth.js'
 
 export default function Entrar() {
   const [params] = useSearchParams()
@@ -41,7 +42,7 @@ export default function Entrar() {
       if (voltarPara) await vincularSessao(token, voltarPara).catch(() => {})
       ir(voltarPara ? `/resultado?token=${voltarPara}` : destino ?? '/conta')
     } catch (e) {
-      setErro(e.message); setIndo(false)
+      setErro(emPortugues(e.message)); setIndo(false)
     }
   }
 
@@ -59,6 +60,11 @@ export default function Entrar() {
       <input className="campo mt-2" type="password" placeholder="senha" value={senha}
              onChange={e => setSenha(e.target.value)} required minLength={6}
              autoComplete={modo === 'criar' ? 'new-password' : 'current-password'} />
+      {modo === 'criar' && (
+        <p className="mt-2 text-xs leading-relaxed text-grafia">
+          Mínimo de 6 caracteres. Evite as óbvias, como 123456 ou o seu nome.
+        </p>
+      )}
 
       {erro && <p className="mt-3 text-sm text-red-700">{erro}</p>}
 

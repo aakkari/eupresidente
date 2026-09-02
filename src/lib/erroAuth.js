@@ -7,7 +7,16 @@ export function emPortugues(msg) {
     return 'Esse e-mail já tem conta aqui. Toque em "Já tenho conta" e entre com sua senha.'
   if (/invalid login credentials/i.test(m))
     return 'E-mail ou senha não conferem. Se a conta é nova, toque em "Criar uma conta".'
-  if (/password should be at least|password.*6/i.test(m))
+  // O Supabase recusa senha que aparece em vazamentos conhecidos, e devolve
+  // "Password is known to be weak and easy to guess". Em ingles, num campo de
+  // senha, isso parece erro do site — a pessoa tenta de novo igual e desiste.
+  if (/known to be weak|easy to guess|weak.?password/i.test(m))
+    return 'Essa senha é fácil demais de adivinhar — ela já apareceu em vazamentos por aí. Escolha outra.'
+  if (/should contain at least one character of each|does not meet.*requirements/i.test(m))
+    return 'Essa senha não atende às regras: use letras e números.'
+  const curta = m.match(/at least (\d+) characters/i)
+  if (curta) return `A senha precisa de pelo menos ${curta[1]} caracteres.`
+  if (/password should be at least/i.test(m))
     return 'A senha precisa de pelo menos 6 caracteres.'
   if (/unable to validate email|invalid email|valid email/i.test(m))
     return 'Confira o e-mail: parece que falta alguma coisa.'

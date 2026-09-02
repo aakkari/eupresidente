@@ -45,7 +45,7 @@ export default function AbrirConta({ enviando, erro, onEnviar }) {
              value={email} required autoComplete="email"
              onChange={e => setEmail(e.target.value)} />
       <input className="campo mt-2" type="password" value={senha} required minLength={6}
-             placeholder={criar ? 'crie uma senha (6 letras ou mais)' : 'sua senha'}
+             placeholder={criar ? 'crie uma senha' : 'sua senha'}
              autoComplete={criar ? 'new-password' : 'current-password'}
              onChange={e => setSenha(e.target.value)} />
       {criar && (
@@ -54,6 +54,14 @@ export default function AbrirConta({ enviando, erro, onEnviar }) {
                autoComplete="new-password" onChange={e => setRepetida(e.target.value)} />
       )}
 
+      {/* A regra visivel antes de digitar, e nao depois de errar. So o que e
+          sempre verdade: o minimo de caracteres. O resto o servidor decide, e
+          a mensagem dele chega traduzida. */}
+      {criar && !naoBate && (
+        <p className="mt-2 text-xs leading-relaxed text-grafia">
+          Mínimo de 6 caracteres. Evite as óbvias, como 123456 ou o seu nome.
+        </p>
+      )}
       {naoBate && <p className="mt-2 text-sm text-red-700">As duas senhas estão diferentes.</p>}
       {erro && <p className="mt-3 text-sm text-red-700">{erro}</p>}
 
