@@ -124,6 +124,23 @@ todo recorte abaixo de 30 pessoas como amostra pequena, e diz quantos
 resultados não entram em recorte nenhum por falta de perfil preenchido: sem
 isso, um corte com quatro pessoas parece a população.
 
+**16. Nada no `public` é legível pelo browser.**
+Toda leitura passa por Function com `service_role`; o front não tem uma única
+chamada `.from()`, e o client do Supabase no browser só faz login. As policies
+de leitura pública que vieram do schema v1 foram removidas e o `SELECT` foi
+revogado de `anon` e `authenticated`, inclusive no default de tabelas futuras.
+
+Elas não eram teóricas. Rodando como `anon` — cuja chave é pública, está no
+bundle — dava para ler `archetypes` inteiro, com `history`, `curiosities`,
+`figures`, `strengths`, `weaknesses`, `blind_spots` e `countries`: exatamente o
+conteúdo que a decisão 11 protege. Uma requisição HTTP passava por cima da
+trava inteira. E `questions` entregava `direction`, `weight` e `intensity` — o
+gabarito que `session-start` tem o cuidado de não mandar.
+
+A lição que fica: **trava no servidor não vale nada enquanto existir outra
+porta para o mesmo dado.** Ao fechar um caminho, procure os outros — foi o mesmo
+erro do `todos_arquetipos` na decisão 11, repetido uma camada abaixo.
+
 ---
 
 ## Estrutura

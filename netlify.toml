@@ -7,3 +7,28 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Cabecalhos de seguranca.
+#
+# O site nao tinha nenhum: a Netlify avisava "No header rules processed" a cada
+# deploy. Os valores abaixo sao apertados de proposito, e cabem porque o app
+# carrega pouca coisa de fora — o bundle e a folha de estilo sao proprios, nao
+# ha fonte externa, e a unica origem terceira e o Supabase Auth.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Sem script inline no build (conferido no dist/index.html), entao 'self'
+    # basta e nao precisa de 'unsafe-inline' em script.
+    # style precisa de 'unsafe-inline' por causa dos style={{}} do React.
+    # img aceita data: e blob: porque o card e desenhado em canvas.
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://kenmkyrxqsgdyqjfejhn.supabase.co wss://kenmkyrxqsgdyqjfejhn.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+
+    # O token do resultado viaja na URL e e a credencial dele. Sem esta linha,
+    # clicar num link externo a partir de um report compartilhado mandaria o
+    # endereco inteiro — token incluso — no cabecalho Referer do outro site.
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), interest-cohort=()"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"

@@ -90,8 +90,15 @@ const Caixa = ({ titulo, children }) => (
 // So caminho interno. Aceitar uma URL qualquer aqui transformaria o link de
 // login num redirecionador aberto — mande /entrar?voltar=https://site-falso e
 // a pessoa entra na conta e cai fora do site sem perceber.
+//
+// A checagem anterior era "comeca com / e nao com //", e nao bastava: o
+// react-router normaliza barra invertida para barra, entao /\site-falso.com
+// passava e virava //site-falso.com, que o navegador le como outro dominio.
+// E a mesma familia do CVE-2025-68470. Aqui a regra e por lista do que pode
+// aparecer, e nao por lista do que nao pode.
 function caminhoInterno(valor) {
   if (!valor) return null
   const limpo = String(valor)
-  return limpo.startsWith('/') && !limpo.startsWith('//') ? limpo : null
+  return /^\/[A-Za-z0-9\-._~/?#[\]@!$&'()*+,;=%]*$/.test(limpo) && !limpo.startsWith('//')
+    ? limpo : null
 }

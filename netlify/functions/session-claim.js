@@ -28,10 +28,24 @@ export default protegido(async (req) => {
 
   // Perfil criado na primeira vinculacao, nao no cadastro: quem cria conta e
   // nao responde nada nao precisa de linha em profiles.
-  await sb.from('profiles').upsert({
-    user_id: auth.user.id,
-    display_name: body.display_name?.slice(0, 60) || auth.user.email?.split('@')[0] || null,
-  }, { onConflict: 'user_id' })
+  //
+  // O apelido so entra se ainda nao houver um. O upsert antigo reescrevia a
+  // cada resultado vinculado: quem tivesse escolhido como queria ser chamado
+  // voltava a se chamar pelo pedaco do email — no cabecalho e, pior, no mapa
+  // da comunidade, na frente dos outros.
+  const { data: perfil } = await sb.from('profiles')
+    .select('display_name').eq('user_id', auth.user.id).maybeSingle()
+
+  if (!perfil) {
+    await sb.from('profiles').insert({
+      user_id: auth.user.id,
+      display_name: body.display_name?.slice(0, 60) || auth.user.email?.split('@')[0] || null,
+    })
+  } else if (!perfil.display_name && body.display_name) {
+    await sb.from('profiles')
+      .update({ display_name: body.display_name.slice(0, 60) })
+      .eq('user_id', auth.user.id)
+  }
 
   return json({ session_id: data })
 })
