@@ -8,6 +8,8 @@ import { useAuth } from './lib/useAuth.js'
 import AdminLayout from './pages/admin/AdminLayout.jsx'
 import Perguntas from './pages/admin/Perguntas.jsx'
 import Metricas from './pages/admin/Metricas.jsx'
+import Plano from './pages/admin/Plano.jsx'
+import Assinantes from './pages/admin/Assinantes.jsx'
 
 export default function App() {
   const { token } = useAuth()
@@ -39,6 +41,8 @@ export default function App() {
           <Route index element={<Navigate to="perguntas" replace />} />
           <Route path="perguntas" element={<Perguntas />} />
           <Route path="metricas" element={<Metricas />} />
+          <Route path="plano" element={<Plano />} />
+          <Route path="assinantes" element={<Assinantes />} />
         </Route>
       </Routes>
     </div>

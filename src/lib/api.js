@@ -39,8 +39,10 @@ export const salvarRespostas = (token, respostas) =>
 export const finalizarSessao = (token, extras = {}) =>
   chamar('session-finish', { metodo: 'POST', corpo: { token, ...extras } })
 
-export const buscarResultado = (token) =>
-  chamar(`result-get?token=${encodeURIComponent(token)}`)
+// O login vai junto quando existe: e ele que decide quanto do report o
+// servidor manda. Sem login o link ainda abre, no nivel anonimo.
+export const buscarResultado = (tokenResultado, login) =>
+  chamar(`result-get?token=${encodeURIComponent(tokenResultado)}`, { token: login })
 
 export const adminCarregar = (token, instrumento) =>
   chamar(`admin-instrument${instrumento ? `?instrument=${instrumento}` : ''}`, { token })
@@ -64,3 +66,18 @@ export const meuPerfil = (token) => chamar('perfil', { token })
 
 export const salvarPerfil = (token, campos) =>
   chamar('perfil', { metodo: 'PATCH', corpo: campos, token })
+
+export const apagarResultado = (token, resultadoToken) =>
+  chamar('resultado-apagar', { metodo: 'POST', corpo: { token: resultadoToken }, token })
+
+export const minhaAssinatura = (token) => chamar('assinatura', { token })
+
+export const assinar = (token) => chamar('assinatura', { metodo: 'POST', token })
+
+export const cancelarAssinatura = (token) =>
+  chamar('assinatura', { metodo: 'DELETE', token })
+
+export const adminConfig = (token) => chamar('admin-config', { token })
+
+export const adminSalvarConfig = (token, corpo) =>
+  chamar('admin-config', { metodo: 'PUT', corpo, token })

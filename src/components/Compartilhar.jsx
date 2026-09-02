@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { tinta } from '../lib/cor'
+import Enviar from './Enviar.jsx'
 
 // Card 1080x1350 (4:5, o formato que o Instagram menos corta no feed),
 // desenhado em canvas no proprio navegador. Sem servidor de imagem: o
@@ -93,11 +94,16 @@ function quebrar(ctx, texto, x, y, largura, alturaLinha) {
   return ly
 }
 
-export default function Compartilhar({ posicao, familia }) {
+// link e compacto existem porque este mesmo componente agora e usado em dois
+// lugares: dentro do report, e em cada item da lista de resultados na conta —
+// onde a URL da pagina nao e a do resultado.
+export default function Compartilhar({ posicao, familia, link, compacto = false }) {
   const ref = useRef(null)
   const [url, setUrl] = useState(null)
   const [blob, setBlob] = useState(null)
   const [aviso, setAviso] = useState(null)
+
+  const alvo = link ?? (typeof window !== 'undefined' ? window.location.href : '')
 
   const dados = {
     posicao: posicao?.posicao ?? 50,
@@ -161,21 +167,18 @@ export default function Compartilhar({ posicao, familia }) {
     } catch { /* navegador sem suporte */ }
 
     window.open(
-      `https://twitter.com/intent/tweet?text=${encodeURIComponent(texto)}&url=${encodeURIComponent(window.location.href)}`,
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(texto)}&url=${encodeURIComponent(alvo)}`,
       '_blank', 'noopener')
     setAviso(copiou
       ? 'Imagem copiada — é só colar no post que abriu.'
       : 'Post aberto. Salve a imagem e anexe manualmente.')
   }
 
-  async function copiarLink() {
-    await navigator.clipboard.writeText(window.location.href)
-    setAviso('Link copiado.')
-  }
-
   return (
     <div>
-      <div className="grid gap-6 sm:grid-cols-[minmax(0,320px)_1fr] sm:items-start">
+      <div className={compacto
+        ? 'grid gap-5 sm:grid-cols-[minmax(0,200px)_1fr] sm:items-start'
+        : 'grid gap-6 sm:grid-cols-[minmax(0,320px)_1fr] sm:items-start'}>
         <div className="overflow-hidden rounded-xl border border-borda bg-white">
           {/* O proprio canvas e a previa: nada de imagem intermediaria que
               possa divergir do arquivo que a pessoa vai salvar. */}
@@ -183,25 +186,29 @@ export default function Compartilhar({ posicao, familia }) {
         </div>
 
         <div>
-          <h3 className="subtitulo text-xl">Mostre para alguém</h3>
-          <p className="mt-1.5 text-sm leading-relaxed text-grafia">
-            A imagem sai no formato do feed, com seu número, os dois eixos que o formam
-            e o seu método.
-          </p>
+          {!compacto && (
+            <>
+              <h3 className="subtitulo text-xl">Mostre para alguém</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-grafia">
+                A imagem sai no formato do feed, com seu número, os dois eixos que o formam
+                e o seu método.
+              </p>
+            </>
+          )}
 
-          <div className="mt-5 flex flex-wrap gap-2">
+          <div className={compacto ? 'flex flex-wrap gap-2' : 'mt-5 flex flex-wrap gap-2'}>
             <button onClick={baixar} className="botao-forte">Salvar imagem</button>
             <button onClick={paraInstagram} className="botao-leve">Instagram</button>
             <button onClick={paraX} className="botao-leve">X</button>
-            <button onClick={copiarLink} className="botao-leve">Copiar link</button>
           </div>
 
           {aviso && <p className="mt-3 text-xs text-grafia">{aviso}</p>}
 
-          <p className="mt-4 text-xs leading-relaxed text-tenue">
-            Quem abrir o link vê seu resultado inteiro — o link é a credencial. Mande
-            para quem você quer que veja.
-          </p>
+          <div className={compacto ? 'mt-3' : 'mt-5 border-t border-borda pt-5'}>
+            {!compacto && <h3 className="subtitulo mb-3 text-xl">Mande para alguém</h3>}
+            <Enviar link={alvo} familia={dados.familia} posicao={dados.posicao}
+                    rotulo={dados.rotulo} compacto={compacto} />
+          </div>
         </div>
       </div>
     </div>

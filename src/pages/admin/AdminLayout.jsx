@@ -32,7 +32,7 @@ export default function AdminLayout() {
     <div className="mx-auto max-w-5xl px-6 py-8">
       <div className="mb-6 flex items-center justify-between border-b border-borda pb-4">
         <nav className="flex gap-1">
-          {[['perguntas', 'Perguntas'], ['metricas', 'Métricas']].map(([to, label]) => (
+          {[['perguntas', 'Perguntas'], ['metricas', 'Métricas'], ['plano', 'Plano'], ['assinantes', 'Assinantes']].map(([to, label]) => (
             <NavLink key={to} to={to}
               className={({ isActive }) =>
                 `rounded px-3 py-1.5 text-sm ${isActive ? 'bg-tinta text-papel' : 'text-grafia hover:text-tinta'}`}>

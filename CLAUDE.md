@@ -63,6 +63,28 @@ Toda mudança de schema vira migration versionada em `supabase/migrations/`.
 Nunca edite o banco pelo dashboard e deixe o arquivo para depois — foi
 exatamente assim que duas correções ficaram órfãs na primeira semana.
 
+**9. Preço e fronteira do pago moram no banco, não no código.**
+`app_settings` guarda o valor da assinatura e quem vê cada bloco do report; a
+tela `/admin/plano` edita os dois. Mudar de ideia sobre quanto custa ou sobre o
+que é grátis não pode exigir deploy — quem decide isso é o dono do produto, na
+tela, não um commit.
+
+**10. Só conteúdo editorial pode ser travado.**
+Posição, régua, vetor, mapa, eixos, facetas e tensões saem sempre, para
+qualquer pessoa: são resposta dela, e a LGPD art. 18 dá a ela direito de acesso
+ao que é seu. O que se vende é o texto que nós escrevemos — descrição,
+história, curiosidades, figuras, forças e fraquezas, ponto cego e países. A
+lista travável vive em `BLOCOS`, em `netlify/functions/_lib/plano.js`; nenhum
+campo entra lá sem passar por essa pergunta.
+
+**11. A trava é do servidor.**
+A primeira versão mandava o report inteiro e desfocava no CSS: parecia uma
+fechadura e não era, bastava abrir o inspetor. `result-get` não envia o campo
+travado, e o que a tela desenha por baixo do cartão é um esqueleto. Pelo mesmo
+motivo `todos_arquetipos` sai resumido a id, nome, cor e centroide — mandar a
+linha inteira entregaria pela porta ao lado o conteúdo travado na porta da
+frente.
+
 ---
 
 ## Estrutura
@@ -144,3 +166,21 @@ Fechar assim que os 12 perfis estiverem escritos: extrair do banco e gravar no
 `seed.sql` de uma vez. Enquanto isso, `scripts/dev-server.mjs` mostra os perfis
 sem o conteúdo rico, porque lê do seed — a página completa só aparece em
 produção, contra o banco real.
+
+---
+
+## Pendente: meio de pagamento
+
+A assinatura existe inteira — configuração, trava paga, histórico, cancelamento
+e concessão manual pelo admin — menos a cobrança. `_lib/gateway.js` é a única
+porta para o gateway: `criarCheckout` e `cancelarNoGateway` explodem com 501
+enquanto Stripe ou Mercado Pago não forem escolhidos e as chaves não existirem.
+
+Duas travas impedem que isso vire uma loja quebrada: `podeCobrar` exige a chave
+no ambiente, e `plano.a_venda` só é verdadeiro com a venda ligada **e** um
+gateway que pode cobrar. Ligar "à venda" no admin sem chave nenhuma não faz
+aparecer botão de pagar para ninguém.
+
+O gateway `manual` não é remendo de transição: cortesia para imprensa, teste
+interno e reembolso vão continuar precisando de `/admin/assinantes` depois que a
+cobrança real existir.

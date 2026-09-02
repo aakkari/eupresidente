@@ -24,8 +24,10 @@ export default function Resultado() {
 
   useEffect(() => {
     if (!token) return setErro('link sem token')
-    buscarResultado(token).then(setDados).catch(e => setErro(e.message))
-  }, [token])
+    // login entra na dependencia: quem cria a conta com o report aberto tem
+    // que ver o report reabrir no nivel novo, sem recarregar a pagina.
+    buscarResultado(token, login).then(setDados).catch(e => setErro(e.message))
+  }, [token, login])
 
   if (erro) return <Aviso>{erro}</Aviso>
   if (!dados) return <Aviso>Carregando...</Aviso>
@@ -33,6 +35,10 @@ export default function Resultado() {
   const { resultado, arquetipo: a, arquetipo_secundario, instrumento, posicao, todos_arquetipos } = dados
   const eixos = instrumento?.axes ?? {}
   const cor = tinta(a?.color)
+  const centavos = dados.trava?.preco_centavos
+  const preco = Number.isFinite(centavos)
+    ? (centavos / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+    : null
 
   return (
     <div className="pb-24">
@@ -53,8 +59,46 @@ export default function Resultado() {
           <MatrizPolitica vetor={resultado.vector} familias={todos_arquetipos} minhaFamilia={a} />
         </Secao>
 
+        {/* Primeiro o que e dela. Posicao, mapa, eixos, facetas e tensoes
+            saem da resposta da propria pessoa — nunca ficam atras de
+            trava, porque cobrar alguem para ver o proprio dado nao e um
+            produto, e um problema (LGPD art. 18). */}
+        {resultado.tensions?.length > 0 && (
+          <Secao titulo="Onde você não cabe na caixa"
+                 subtitulo="Nestes eixos você se afasta da sua própria família. Ninguém é a média da tradição que o descreve.">
+            <div className="space-y-2">
+              {resultado.tensions.map(e => (
+                <div key={e} className="cartao p-4">
+                  <h3 className="text-sm font-semibold">{eixos[e]?.nome ?? e}</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-grafia">
+                    Você está em <strong className="text-tinta">{Number(resultado.vector[e]).toFixed(2)}</strong>,
+                    enquanto {a?.name} costuma ficar em {Number(a?.centroid?.[e] ?? 0).toFixed(2)}.
+                  </p>
+                </div>
+              ))}
+            </div>
+          </Secao>
+        )}
+
+        <Secao titulo="Seus seis eixos" subtitulo="A escala de 1 a 100 nasce dos dois primeiros. Os outros quatro não cabem nela — e é por isso que existem.">
+          <div className="cartao divide-y divide-borda px-4">
+            {EIXOS.map(e => (
+              <Eixo key={e} meta={eixos[e]} valor={Number(resultado.vector?.[e] ?? 0)}
+                    confianca={Number(resultado.confidence?.[e] ?? 0)} cor={cor} />
+            ))}
+          </div>
+        </Secao>
+
+        <Secao titulo="O detalhe dentro de cada posicionamento"
+               subtitulo="Cada eixo se divide em três. É aqui que aparece onde você é radical e onde é morno — coisa que a nota do eixo esconde.">
+          <Facetas facetVector={resultado.facet_vector} facetas={instrumento?.facets}
+                   eixos={eixos} cor={cor} />
+        </Secao>
+
+        {/* Depois a analise escrita: e ela que a trava fecha. */}
+        {a?.description && (
         <Secao titulo="O que isso quer dizer">
-          <p className="texto">{a?.description}</p>
+          <p className="texto">{a.description}</p>
           {arquetipo_secundario && (
             <p className="mt-4 border-l-2 pl-4 text-sm leading-relaxed text-grafia" style={{ borderColor: cor }}>
               Você ficou a uma distância parecida de <strong className="text-tinta">{arquetipo_secundario.name}</strong>.
@@ -62,8 +106,8 @@ export default function Resultado() {
             </p>
           )}
         </Secao>
+        )}
 
-        <Trava logado={Boolean(login)} token={token} arquetipo={a}>
         {a?.history && (
           <Secao titulo="De onde vem">
             <p className="texto">{a.history}</p>
@@ -132,38 +176,7 @@ export default function Resultado() {
           </Secao>
         )}
 
-        <Secao titulo="Seus seis eixos" subtitulo="A escala de 1 a 100 nasce dos dois primeiros. Os outros quatro não cabem nela — e é por isso que existem.">
-          <div className="cartao divide-y divide-borda px-4">
-            {EIXOS.map(e => (
-              <Eixo key={e} meta={eixos[e]} valor={Number(resultado.vector?.[e] ?? 0)}
-                    confianca={Number(resultado.confidence?.[e] ?? 0)} cor={cor} />
-            ))}
-          </div>
-        </Secao>
-
-        <Secao titulo="O detalhe dentro de cada posicionamento"
-               subtitulo="Cada eixo se divide em três. É aqui que aparece onde você é radical e onde é morno — coisa que a nota do eixo esconde.">
-          <Facetas facetVector={resultado.facet_vector} facetas={instrumento?.facets}
-                   eixos={eixos} cor={cor} />
-        </Secao>
-        </Trava>
-
-        {resultado.tensions?.length > 0 && (
-          <Secao titulo="Onde você não cabe na caixa"
-                 subtitulo="Nestes eixos você se afasta da sua própria família. Ninguém é a média da tradição que o descreve.">
-            <div className="space-y-2">
-              {resultado.tensions.map(e => (
-                <div key={e} className="cartao p-4">
-                  <h3 className="text-sm font-semibold">{eixos[e]?.nome ?? e}</h3>
-                  <p className="mt-1 text-sm leading-relaxed text-grafia">
-                    Você está em <strong className="text-tinta">{Number(resultado.vector[e]).toFixed(2)}</strong>,
-                    enquanto {a?.name} costuma ficar em {Number(a?.centroid?.[e] ?? 0).toFixed(2)}.
-                  </p>
-                </div>
-              ))}
-            </div>
-          </Secao>
-        )}
+        <Bloqueado trava={dados.trava} token={token} precoFormatado={preco} />
 
         {resultado.quality_flags?.length > 0 && (
           <p className="text-xs leading-relaxed text-grafia">
@@ -285,27 +298,3 @@ function Eixo({ meta, valor, confianca, cor }) {
   )
 }
 
-// Decide o que fica visivel sem cadastro. A posicao, a familia, o mapa e o
-// compartilhamento ficam livres: sao o que a pessoa precisa para se
-// reconhecer e para mostrar a alguem — travar isso seria travar o produto.
-function Trava({ logado, token, arquetipo, children }) {
-  if (logado) return <>{children}</>
-
-  const itens = [
-    'A história da sua família política, de onde ela nasceu e como chegou até aqui',
-    arquetipo?.curiosities?.length
-      ? `${arquetipo.curiosities.length} curiosidades que quase ninguém sabe sobre ela`
-      : 'Curiosidades sobre a tradição',
-    arquetipo?.figures?.length
-      ? `${arquetipo.figures.length} figuras históricas que carregaram essas ideias`
-      : 'As figuras históricas da tradição',
-    'Forças e fraquezas do seu perfil, incluindo as críticas que ele recebe dos próprios aliados',
-    'O ponto cego: onde essa tradição historicamente não enxerga',
-    arquetipo?.countries?.length
-      ? `Onde seu perfil é forte e onde é irrelevante, em ${arquetipo.countries.length} países`
-      : 'Onde seu perfil é forte no mundo',
-    'As 18 facetas: onde você é radical e onde é morno dentro de cada eixo',
-  ]
-
-  return <Bloqueado token={token} itens={itens}>{children}</Bloqueado>
-}

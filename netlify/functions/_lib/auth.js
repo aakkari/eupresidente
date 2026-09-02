@@ -19,3 +19,17 @@ export async function exigirAdmin(req) {
   if (!permitidos.includes(email)) return { ok: false, motivo: 'nao autorizado' }
   return { ok: true, user: data.user, sb }
 }
+
+// Usuario logado comum. Tres Functions repetiam este bloco palavra por
+// palavra; agora que a assinatura tambem precisa dele, repetir a quarta vez
+// seria como esconder a regra de autenticacao em quatro lugares diferentes.
+export async function exigirUsuario(req) {
+  const header = req.headers.get('authorization') || ''
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null
+  if (!token) return { ok: false, motivo: 'login obrigatorio' }
+
+  const sb = admin()
+  const { data, error } = await sb.auth.getUser(token)
+  if (error || !data?.user) return { ok: false, motivo: 'login invalido' }
+  return { ok: true, user: data.user, uid: data.user.id, sb }
+}

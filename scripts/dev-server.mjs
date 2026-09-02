@@ -10,6 +10,7 @@ import { readFileSync, existsSync } from 'node:fs'
 import { extname, join } from 'node:path'
 import { randomUUID } from 'node:crypto'
 import { scoreSession, posicaoPolitica } from '../netlify/functions/_lib/scoring.js'
+import { aplicarTravas, BLOCOS, PADRAO_TRAVAS } from '../netlify/functions/_lib/plano.js'
 
 // --- leitura do seed -------------------------------------------------------
 
@@ -127,6 +128,20 @@ function ordenar(perguntas, semente) {
 
 const sessoes = new Map()
 
+// --- estado da demo --------------------------------------------------------
+// NIVEL_DEMO troca entre anonimo, cadastrado e assinante sem banco nenhum: e
+// como eu vejo as tres travas na mesma maquina.
+const nivelDemo = process.env.NIVEL_DEMO || 'anonimo'
+const config = {
+  assinatura: { ativa: false, gateway: null, preco_centavos: 4990, moeda: 'BRL',
+                ciclo: 'anual', titulo: 'Assinatura anual',
+                descricao: 'Acesso ao report completo por um ano.' },
+  // TRAVAS_JSON permite ver a variante paga sem banco: por exemplo
+  // TRAVAS_JSON='{"paises":"assinante"}' com NIVEL_DEMO=cadastrado.
+  travas: { ...PADRAO_TRAVAS, ...(process.env.TRAVAS_JSON ? JSON.parse(process.env.TRAVAS_JSON) : {}) },
+}
+const resumir = (a) => a && ({ id: a.id, name: a.name, color: a.color, centroid: a.centroid })
+
 // --- rotas -----------------------------------------------------------------
 
 const json = (res, corpo, status = 200) => {
@@ -178,20 +193,60 @@ const rotas = {
   'result-get': (_body, q, res) => {
     const s = sessoes.get(q.get('token'))
     if (!s?.resultado) return json(res, { erro: 'resultado ainda nao calculado' }, 404)
+    const bruto = archetypes.find(a => a.id === s.resultado.archetype_id) ?? null
+    // Mesma trava da producao, lendo a mesma configuracao — se aqui divergisse,
+    // o que eu vejo na demo nao seria o que a pessoa ve no ar.
+    const { arquetipo, bloqueados, proximoNivel } = aplicarTravas(bruto, config.travas, nivelDemo)
     json(res, {
       posicao: posicaoPolitica(s.resultado.vector),
       resultado: s.resultado,
       instrumento,
-      arquetipo: archetypes.find(a => a.id === s.resultado.archetype_id) ?? null,
-      arquetipo_secundario: archetypes.find(a => a.id === s.resultado.archetype_secondary_id) ?? null,
-      todos_arquetipos: archetypes,
+      arquetipo,
+      arquetipo_secundario: resumir(archetypes.find(a => a.id === s.resultado.archetype_secondary_id)),
+      todos_arquetipos: archetypes.map(resumir),
+      nivel: nivelDemo,
+      meu: nivelDemo !== 'anonimo',
+      trava: bloqueados.length
+        ? { proximo_nivel: proximoNivel, blocos: bloqueados,
+            preco_centavos: config.assinatura.preco_centavos,
+            assinatura_ativa: config.assinatura.ativa }
+        : null,
     })
   },
+
+  assinatura: (_body, _q, res) => json(res, {
+    nivel: nivelDemo,
+    assinatura: { status: nivelDemo === 'assinante' ? 'ativa' : 'nenhuma',
+                  period_end: nivelDemo === 'assinante'
+                    ? new Date(Date.now() + 3155e7).toISOString() : null,
+                  cancel_at_period_end: false, gateway: 'manual' },
+    pagamentos: [],
+    plano: { ...config.assinatura, a_venda: false },
+  }),
+
+  'resultado-apagar': (body, _q, res) => {
+    sessoes.delete(body?.token)
+    json(res, { ok: true })
+  },
+
+  'admin-config': (body, _q, res) => {
+    if (body?.assinatura) config.assinatura = { ...config.assinatura, ...body.assinatura }
+    if (body?.travas) config.travas = { ...config.travas, ...body.travas }
+    json(res, {
+      assinatura: config.assinatura, travas: config.travas,
+      blocos: BLOCOS.map(({ id, rotulo, promessa }) => ({ id, rotulo, promessa })),
+      niveis: ['todos', 'cadastrado', 'assinante'],
+      gateways: ['manual', 'stripe', 'mercadopago'], gateways_disponiveis: ['manual'],
+    })
+  },
+
+  'admin-assinantes': (_body, _q, res) => json(res, { assinantes: [] }),
 
   // No modo demo o admin nao autentica: nao existe Supabase Auth aqui. Em
   // producao cada Function confere o token contra ADMIN_EMAILS.
   perfil: (_body, _q, res) => json(res, {
     email: 'voce@exemplo.com', full_name: '', display_name: '', phone: '',
+    birth_year: null, city: '', uf: '', education: '', occupation: '',
     desde: new Date().toISOString(), questionarios: sessoes.size,
   }),
 
@@ -200,7 +255,9 @@ const rotas = {
     for (const [token, s] of sessoes) if (s.resultado) out.push({
       token, mode: s.mode, quando: new Date().toISOString(),
       familia: archetypes.find(a => a.id === s.resultado.archetype_id)?.name ?? '—',
-      cor: '#0a0a0b', vector: s.resultado.vector,
+      cor: archetypes.find(a => a.id === s.resultado.archetype_id)?.color ?? '#0a0a0b',
+      tagline: archetypes.find(a => a.id === s.resultado.archetype_id)?.tagline ?? null,
+      vector: s.resultado.vector,
       posicao: posicaoPolitica(s.resultado.vector),
     })
     json(res, { resultados: out })
