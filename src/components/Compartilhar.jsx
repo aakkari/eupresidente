@@ -7,7 +7,7 @@ import Enviar from './Enviar.jsx'
 // resultado ja esta na tela, gerar fora seria uma round-trip para nada.
 const L = 1080, A = 1350
 
-function desenhar(ctx, { posicao, rotulo, familia, tagline, cor, economia, costumes, metodo }) {
+function desenhar(ctx, { posicao, rotulo, familia, tagline, cor, economia, costumes, metodo, site }) {
   ctx.fillStyle = '#fafafa'; ctx.fillRect(0, 0, L, A)
 
   // Faixa da cor da familia no topo — a assinatura visual do resultado.
@@ -64,8 +64,11 @@ function desenhar(ctx, { posicao, rotulo, familia, tagline, cor, economia, costu
   barra(ctx, 'Economia', economia, 90, Math.max(y + 60, 900), cor)
   barra(ctx, 'Costumes', costumes, 90, Math.max(y + 220, 1060), cor)
 
+  // O endereco sai do proprio navegador, e nao escrito a mao: no dia em que o
+  // dominio mudar, o card comeca a divulgar o endereco novo sozinho — em vez
+  // de continuar mandando as pessoas para o antigo.
   ctx.fillStyle = '#5b5f6b'; ctx.font = '400 28px Inter, system-ui, sans-serif'
-  ctx.fillText('eupresidente.netlify.app', 90, A - 80)
+  ctx.fillText(site, 90, A - 80)
 }
 
 function barra(ctx, titulo, valor, x, y, cor) {
@@ -114,6 +117,8 @@ export default function Compartilhar({ posicao, familia, link, compacto = false 
     economia: posicao?.economia_1_100 ?? 50,
     costumes: posicao?.costumes_1_100 ?? 50,
     metodo: posicao?.metodo?.rotulo ?? null,
+    site: typeof window !== 'undefined'
+      ? window.location.host.replace(/^www\./, '') : 'eupresidente.netlify.app',
   }
 
   // Desenha assim que a secao monta: a pessoa ve o card pronto, sem precisar
