@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import Enviar from '../components/Enviar.jsx'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { iniciarSessao, salvarRespostas, finalizarSessao } from '../lib/api.js'
 
@@ -151,6 +152,22 @@ export default function Quiz() {
       <button onClick={concluir} disabled={enviando} className="botao-forte mt-6 w-full">
         {enviando ? 'Calculando...' : 'Ver meu resultado'}
       </button>
+
+      {/* Convidar sem sair da tela. O melhor momento para chamar alguem e este:
+          a pessoa acabou de investir tempo, ainda nao viu o resultado, e a
+          curiosidade de comparar esta no pico. Nenhum dos caminhos navega para
+          fora — compartilhamento nativo e WhatsApp abrem por cima, e-mail abre
+          o cliente, copiar nem sai do lugar. */}
+      <div className="cartao mt-4 p-5">
+        <h3 className="subtitulo text-lg">Chame alguém para responder também</h3>
+        <p className="mt-1.5 text-sm leading-relaxed text-grafia">
+          Fica bem melhor com gente para comparar. Manda agora, enquanto você espera —
+          você não sai desta tela.
+        </p>
+        <div className="mt-4">
+          <Enviar link={typeof window !== 'undefined' ? window.location.origin : ''} compacto />
+        </div>
+      </div>
     </div>
   )
 
