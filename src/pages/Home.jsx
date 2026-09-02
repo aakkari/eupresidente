@@ -43,7 +43,8 @@ export default function Home() {
             <p className="mt-5 text-sm text-tenue">
               {info
                 ? `${info.completa.perguntas} perguntas, cerca de ${info.completa.minutos} minutos · versão rápida com ${info.curta.perguntas}, em ${info.curta.minutos}`
-                : 'Sem cadastro para responder.'}
+                : 'Duas versões: uma completa e uma rápida.'}
+              {' '}O resultado abre numa conta gratuita.
             </p>
           </div>
 
@@ -103,7 +104,7 @@ export default function Home() {
           </div>
 
           <dl className="grid grid-cols-2 gap-x-8 gap-y-10 self-center">
-            <Numero n={info?.completa.perguntas ?? '90'} r="perguntas na versão completa" />
+            <Numero n={info?.completa?.perguntas ?? '90'} r="perguntas na versão completa" />
             <Numero n="18" r="facetas medidas separadamente" />
             <Numero n="15" r="famílias políticas de referência" />
             <Numero n="±3" r="pontos de margem de erro" />
@@ -168,7 +169,10 @@ export default function Home() {
               Opinião política é dado sensível. Tratamos como tal.
             </h2>
             <div className="space-y-3 text-grafia">
-              <p>Você responde sem cadastro. O resultado é seu, e o link é a chave.</p>
+              <p>
+                Você responde sem se identificar. O nome e o e-mail só entram no fim, para
+                abrir a conta gratuita onde o resultado fica guardado.
+              </p>
               <p>
                 Nada entra na base de pesquisa sem você marcar que aceita — separadamente,
                 no fim, e só na versão completa.

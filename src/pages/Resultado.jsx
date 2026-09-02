@@ -281,7 +281,7 @@ export default function Resultado() {
               Responder o meu
             </Link>
           </div>
-        ) : (
+        ) : dados.orfa ? (
           <div className="cartao p-5">
             <h3 className="subtitulo text-xl">Guardar este resultado</h3>
             <p className="mt-1 text-sm leading-relaxed text-grafia">
@@ -292,9 +292,22 @@ export default function Resultado() {
               Criar conta e guardar
             </Link>
           </div>
+        ) : (
+          // Deslogado num link que ja tem dono: e o resultado de um amigo.
+          // Oferecer "criar conta e guardar" aqui era um beco — a conta era
+          // criada e nada era guardado, porque a sessao nao e dela.
+          <div className="cartao p-5">
+            <h3 className="subtitulo text-xl">Este resultado é de outra pessoa</h3>
+            <p className="mt-1 text-sm leading-relaxed text-grafia">
+              Alguém compartilhou com você. Responda o seu e compare os dois lado a lado.
+            </p>
+            <Link to="/responder?modo=long" className="botao-forte mt-3 inline-flex">
+              Responder o meu
+            </Link>
+          </div>
         )}
 
-        {!login && (
+        {!login && dados.orfa && (
           <p className="border-t border-borda pt-6 text-xs text-grafia">
             Guarde este link: sem conta, é por ele que você volta ao seu resultado.
           </p>

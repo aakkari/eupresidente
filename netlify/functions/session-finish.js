@@ -79,16 +79,22 @@ export default protegido(async (req) => {
   // porque toda sessao nascia orfa e passava por la. Agora quem responde
   // logado nunca vincula nada — e ficaria para sempre sem nome, inclusive no
   // mapa da comunidade, onde o nome e o ponto todo.
+  //
+  // Dentro de try: isto roda depois de o resultado ja estar gravado, e ficar
+  // sem apelido e um arranhao. Deixar escapar aqui derrubaria a resposta de
+  // quem acabou de responder noventa perguntas — o perfil nao vale isso.
   if (sessao.user_id) {
-    const { data: perfil } = await sb.from('profiles')
-      .select('user_id').eq('user_id', sessao.user_id).maybeSingle()
-    if (!perfil) {
-      const { data: dono } = await sb.auth.admin.getUserById(sessao.user_id)
-      const nome = dono?.user?.user_metadata?.display_name
-        || dono?.user?.email?.split('@')[0] || null
-      await sb.from('profiles')
-        .insert({ user_id: sessao.user_id, display_name: nome?.slice(0, 60) ?? null })
-    }
+    try {
+      const { data: perfil } = await sb.from('profiles')
+        .select('user_id').eq('user_id', sessao.user_id).maybeSingle()
+      if (!perfil) {
+        const { data: dono } = await sb.auth.admin.getUserById(sessao.user_id)
+        const nome = dono?.user?.user_metadata?.display_name
+          || dono?.user?.email?.split('@')[0] || null
+        await sb.from('profiles')
+          .insert({ user_id: sessao.user_id, display_name: nome?.slice(0, 60) ?? null })
+      }
+    } catch { /* segue: o resultado ja existe */ }
   }
 
   if (body.consentimento_pesquisa === true) {
