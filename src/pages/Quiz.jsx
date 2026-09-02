@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import Enviar from '../components/Enviar.jsx'
 import AbrirConta from '../components/AbrirConta.jsx'
 import { useAuth } from '../lib/useAuth.js'
 import { getSupabase, temSupabase } from '../lib/supabase.js'
@@ -210,21 +209,10 @@ export default function Quiz() {
         <AbrirConta enviando={enviando} erro={erro} onEnviar={concluir} />
       )}
 
-      {/* Convidar sem sair da tela. O melhor momento para chamar alguem e este:
-          a pessoa acabou de investir tempo, ainda nao viu o resultado, e a
-          curiosidade de comparar esta no pico. Nenhum dos caminhos navega para
-          fora — compartilhamento nativo e WhatsApp abrem por cima, e-mail abre
-          o cliente, copiar nem sai do lugar. */}
-      <div className="cartao mt-4 p-5">
-        <h3 className="subtitulo text-lg">Chame alguém para responder também</h3>
-        <p className="mt-1.5 text-sm leading-relaxed text-grafia">
-          Fica bem melhor com gente para comparar. Manda agora, enquanto você espera —
-          você não sai desta tela.
-        </p>
-        <div className="mt-4">
-          <Enviar link={typeof window !== 'undefined' ? window.location.origin : ''} compacto />
-        </div>
-      </div>
+      {/* O convite saiu daqui. Nesta tela ele competia com o unico passo que
+          importa — abrir a conta — e dava a impressao de que clicar nele fazia
+          perder o resultado. Foi para o fim do report, onde a pessoa ja viu o
+          que ganhou e sabe o que esta convidando o outro a ver. */}
     </div>
   )
 

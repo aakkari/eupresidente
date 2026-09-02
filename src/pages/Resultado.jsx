@@ -5,6 +5,7 @@ import ReguaPolitica from '../components/ReguaPolitica.jsx'
 import MatrizPolitica from '../components/MatrizPolitica.jsx'
 import Facetas from '../components/Facetas.jsx'
 import Compartilhar from '../components/Compartilhar.jsx'
+import Enviar from '../components/Enviar.jsx'
 import Bloqueado from '../components/Bloqueado.jsx'
 import { useAuth } from '../lib/useAuth.js'
 import { vincularSessao } from '../lib/api.js'
@@ -306,6 +307,22 @@ export default function Resultado() {
             </Link>
           </div>
         )}
+
+        {/* Fecha o report. Aqui o convite faz sentido e la na tela final nao
+            fazia: a pessoa ja viu o que ganhou, entao sabe o que esta chamando
+            o outro para ver, e nao ha mais nada depois disto para ela temer
+            perder. Destaque proposital — e o unico jeito de isto crescer. */}
+        <section className="rounded-2xl border-2 border-tinta bg-papel p-6 sm:p-8">
+          <h2 className="titulo text-2xl sm:text-3xl">Chame alguém para responder também</h2>
+          <p className="mt-2 max-w-xl leading-relaxed text-grafia">
+            Isto fica muito melhor com gente para comparar. Mande para quem você discute
+            política — e para quem você evita discutir. O interessante é ver onde vocês
+            caem no mesmo mapa.
+          </p>
+          <div className="mt-5">
+            <Enviar link={typeof window !== 'undefined' ? window.location.origin : ''} />
+          </div>
+        </section>
 
         {!login && dados.orfa && (
           <p className="border-t border-borda pt-6 text-xs text-grafia">

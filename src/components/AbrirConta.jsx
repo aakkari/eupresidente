@@ -12,10 +12,16 @@ export default function AbrirConta({ enviando, erro, onEnviar }) {
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
+  const [repetida, setRepetida] = useState('')
   const criar = modo === 'criar'
+  // Senha digitada errada aqui e uma conta que a pessoa nunca mais abre: nao
+  // ha e-mail de recuperacao ligado ainda, e o resultado fica dentro dela.
+  // Por isso o segundo campo — e por isso o erro aparece antes de enviar.
+  const naoBate = criar && repetida.length > 0 && senha !== repetida
 
   function enviar(e) {
     e.preventDefault()
+    if (naoBate || (criar && senha !== repetida)) return
     onEnviar({ modo, nome: nome.trim(), email: email.trim().toLowerCase(), senha })
   }
 
@@ -42,10 +48,17 @@ export default function AbrirConta({ enviando, erro, onEnviar }) {
              placeholder={criar ? 'crie uma senha (6 letras ou mais)' : 'sua senha'}
              autoComplete={criar ? 'new-password' : 'current-password'}
              onChange={e => setSenha(e.target.value)} />
+      {criar && (
+        <input className={`campo mt-2 ${naoBate ? 'border-red-600' : ''}`} type="password"
+               value={repetida} required minLength={6} placeholder="repita a senha"
+               autoComplete="new-password" onChange={e => setRepetida(e.target.value)} />
+      )}
 
+      {naoBate && <p className="mt-2 text-sm text-red-700">As duas senhas estão diferentes.</p>}
       {erro && <p className="mt-3 text-sm text-red-700">{erro}</p>}
 
-      <button className="botao-forte mt-4 w-full" disabled={enviando}>
+      <button className="botao-forte mt-4 w-full disabled:opacity-40"
+              disabled={enviando || naoBate || (criar && !repetida)}>
         {enviando ? 'Calculando...'
           : criar ? 'Abra sua conta gratuita para ver seu resultado'
           : 'Entrar e ver meu resultado'}
@@ -56,7 +69,7 @@ export default function AbrirConta({ enviando, erro, onEnviar }) {
           responder. A unica outra porta e para quem ja tem conta — isso nao e
           escapar, e entrar pela porta certa. */}
       <button type="button" disabled={enviando} className="mt-4 w-full text-sm text-grafia hover:text-tinta"
-              onClick={() => setModo(criar ? 'entrar' : 'criar')}>
+              onClick={() => { setModo(criar ? 'entrar' : 'criar'); setRepetida('') }}>
         {criar ? 'Já tenho conta' : 'Criar uma conta'}
       </button>
 
