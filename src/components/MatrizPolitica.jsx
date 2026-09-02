@@ -63,7 +63,7 @@ export default function MatrizPolitica({ vetor, familias, minhaFamilia }) {
           {vista.cantos.map((nome, i) => (
             <text key={nome} fontSize="9" fill="#5b5f6b" opacity="0.75"
                   textAnchor={i % 2 ? 'end' : 'start'}
-                  x={i % 2 ? W-R-8 : L+8} y={i < 2 ? T+14 : H-B-7}>{nome}</text>
+                  x={i % 2 ? W-R-8 : L+8} y={i < 2 ? T+14 : H-B+12}>{nome}</text>
           ))}
 
           {/* Famílias: pontos neutros. A identidade vem do rótulo, não da cor —

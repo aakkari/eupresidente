@@ -19,6 +19,24 @@ import Comunidades from './pages/admin/Comunidades.jsx'
 import Perfis from './pages/admin/Perfis.jsx'
 import AdminContato from './pages/admin/Contato.jsx'
 
+function NaoEncontrada() {
+  return (
+    <div className="mx-auto max-w-lg px-6 py-24">
+      <p className="rotulo">Erro 404</p>
+      <h1 className="titulo mt-3 text-3xl text-balance">Esta página não existe.</h1>
+      <p className="mt-3 leading-relaxed text-grafia">
+        Ou o endereço veio torto, ou ela deixou de existir. Se você chegou por um link que
+        alguém mandou, peça de novo — link de resultado tem um token no fim, e ele às vezes
+        se perde no caminho quando o aplicativo quebra a linha.
+      </p>
+      <div className="mt-7 flex flex-wrap gap-2">
+        <Link to="/" className="botao-forte">Ir para o começo</Link>
+        <Link to="/contato" className="botao-leve">Falar comigo</Link>
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
   const { token, nome } = useAuth()
 
@@ -61,6 +79,9 @@ export default function App() {
           <Route path="perfis" element={<Perfis />} />
           <Route path="contato" element={<AdminContato />} />
         </Route>
+        {/* Sem esta rota, endereco errado renderizava cabecalho, rodape e um
+            vao branco no meio — parece site quebrado, e nao endereco errado. */}
+        <Route path="*" element={<NaoEncontrada />} />
       </Routes>
 
       <footer className="border-t border-borda">

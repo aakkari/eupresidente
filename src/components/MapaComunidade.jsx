@@ -67,7 +67,7 @@ export default function MapaComunidade({ membros = [], familias = [], eu }) {
           {vista.cantos.map((nome, i) => (
             <text key={nome} fontSize="9.5" fill="#5b5f6b" opacity="0.7"
                   textAnchor={i % 2 ? 'end' : 'start'}
-                  x={i % 2 ? W-R-8 : L+8} y={i < 2 ? T+14 : H-B-7}>{nome}</text>
+                  x={i % 2 ? W-R-8 : L+8} y={i < 2 ? T+14 : H-B+12}>{nome}</text>
           ))}
 
           {/* Familias ao fundo: referencia, nao conteudo. */}

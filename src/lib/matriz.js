@@ -38,7 +38,10 @@ export const caixa = ({ W, H, L = 40, R = 20, T = 20, B = 40 }) => ({
 export function distribuirRotulos(pontos, { c, cantos = [], alturaLinha = 11, larguraTexto = 95 }) {
   const colocados = cantos.map((_, i) => ({
     x: i % 2 ? c.W - c.R - 60 : c.L + 60,
-    ly: i < 2 ? c.T + 14 : c.H - c.B - 7,
+    // Os rotulos de baixo agora ficam abaixo da caixa, fora da area onde os
+    // pontos extremos caem — antes o circulo de quem estava no canto pousava
+    // em cima do nome do quadrante.
+    ly: i < 2 ? c.T + 14 : c.H - c.B + 12,
     aDireita: Boolean(i % 2),
   }))
 

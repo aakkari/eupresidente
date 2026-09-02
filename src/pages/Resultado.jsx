@@ -35,6 +35,7 @@ export default function Resultado() {
   const { resultado, arquetipo: a, arquetipo_secundario, instrumento, posicao, todos_arquetipos } = dados
   const eixos = instrumento?.axes ?? {}
   const cor = tinta(a?.color)
+  const facetasMedidas = Object.keys(resultado.facet_vector ?? {}).length
   const centavos = dados.trava?.preco_centavos
   const preco = Number.isFinite(centavos)
     ? (centavos / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -89,10 +90,38 @@ export default function Resultado() {
           </div>
         </Secao>
 
+        {/* A faceta so aparece com tres respostas dentro dela, e a versao
+            rapida nao tem perguntas suficientes para as dezoito. Antes esta
+            secao abria com titulo, a promessa das dezoito, e nada embaixo. */}
         <Secao titulo="O detalhe dentro de cada posicionamento"
-               subtitulo="Cada eixo se divide em três. É aqui que aparece onde você é radical e onde é morno — coisa que a nota do eixo esconde.">
-          <Facetas facetVector={resultado.facet_vector} facetas={instrumento?.facets}
-                   eixos={eixos} cor={cor} />
+               subtitulo={facetasMedidas
+                 ? 'Cada eixo se divide em três. É aqui que aparece onde você é radical e onde é morno — coisa que a nota do eixo esconde.'
+                 : 'Cada eixo se divide em três, e é aí que aparece onde você é radical e onde é morno.'}>
+          {facetasMedidas ? (
+            <>
+              <Facetas facetVector={resultado.facet_vector} facetas={instrumento?.facets}
+                       eixos={eixos} cor={cor} />
+              {facetasMedidas < 18 && (
+                <p className="mt-4 text-sm leading-relaxed text-grafia">
+                  Aparecem {facetasMedidas} das 18. Uma faceta só é medida com pelo menos três
+                  respostas dentro dela, e a versão rápida não tem perguntas suficientes para
+                  todas. <Link to="/responder?modo=long" className="underline">Responder a
+                  completa</Link> abre as dezoito.
+                </p>
+              )}
+            </>
+          ) : (
+            <div className="cartao p-5">
+              <p className="text-sm leading-relaxed text-grafia">
+                Este detalhe não cabe na versão rápida: cada faceta precisa de pelo menos três
+                respostas para ser medida, e são dezoito. Seu resultado acima continua valendo —
+                o que falta aqui é a lupa, não a posição.
+              </p>
+              <Link to="/responder?modo=long" className="botao-forte mt-4 inline-flex">
+                Responder a versão completa
+              </Link>
+            </div>
+          )}
         </Secao>
 
         {/* Depois a analise escrita: e ela que a trava fecha. */}
