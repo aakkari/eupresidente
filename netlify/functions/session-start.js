@@ -2,8 +2,15 @@ import { admin } from './_lib/supabase.js'
 import { json, erro, corpo, hashIp, rateLimit, protegido } from './_lib/http.js'
 
 // Cria a sessao e devolve as perguntas do modo escolhido.
-// A sessao nasce anonima: so um token. Cadastro, se houver, vem depois de
-// responder — pedir antes derruba a taxa de conclusao.
+//
+// Sem login a sessao nasce anonima: so um token. Cadastro, se houver, vem
+// depois de responder — pedir antes derruba a taxa de conclusao.
+//
+// COM login, ela ja nasce da pessoa. Antes nao nascia, e quem respondia logado
+// terminava com uma sessao orfa: o resultado existia, mas a conta dela dizia
+// "0 questionarios respondidos" ate alguem clicar em "Guardar na minha conta"
+// no fim do report. Ninguem clica num botao para receber o que ja achava que
+// era seu.
 // Agrupa por eixo e embaralha por dentro.
 //
 // Agrupar reduz troca de contexto: a pessoa passa alguns minutos pensando em
@@ -47,6 +54,12 @@ export default protegido(async (req) => {
   const mode = body.mode === 'short' ? 'short' : 'long'
   const sb = admin()
 
+  // Login e opcional: sem ele o questionario funciona igual, so que anonimo.
+  const header = req.headers.get('authorization') || ''
+  const jwt = header.startsWith('Bearer ') ? header.slice(7) : null
+  const { data: auth } = jwt ? await sb.auth.getUser(jwt) : { data: null }
+  const dono = auth?.user?.id ?? null
+
   const ip = await hashIp(req)
   if (ip && !(await rateLimit(sb, `start:${ip}`, 20, 3600)))
     return erro('muitas sessoes iniciadas, tente mais tarde', 429)
@@ -61,6 +74,8 @@ export default protegido(async (req) => {
   const { data: sessao, error: eSess } = await sb.from('sessions').insert({
     instrument_id: instrumento.id,
     mode,
+    user_id: dono,
+    claimed_at: dono ? new Date().toISOString() : null,
     ip_hash: ip,
     ua_hash: (req.headers.get('user-agent') || '').slice(0, 120) || null,
     utm: body.utm ?? null,

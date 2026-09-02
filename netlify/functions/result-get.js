@@ -57,6 +57,10 @@ export default protegido(async (req) => {
     todos_arquetipos: arquetipos.map(resumir),
     nivel,
     meu: Boolean(uid && sessao.user_id === uid),
+    // Sem dono: ou a pessoa respondeu deslogada, ou e uma sessao antiga de
+    // antes de a vinculacao acontecer no inicio. So nesse caso faz sentido
+    // oferecer guardar — se ja tem dono e nao e voce, o link e de outra pessoa.
+    orfa: !sessao.user_id,
     trava: bloqueados.length
       ? { proximo_nivel: proximoNivel, blocos: bloqueados,
           preco_centavos: assinatura?.preco_centavos ?? null,

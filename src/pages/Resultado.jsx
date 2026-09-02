@@ -218,45 +218,72 @@ export default function Resultado() {
           <Compartilhar posicao={posicao} familia={a} />
         </Secao>
 
-        {/* Guardar vem depois do resultado, nunca antes: o resultado e o
-            argumento para criar a conta. */}
-        <div className="cartao p-5">
-          <h3 className="subtitulo text-xl">Guardar este resultado</h3>
-          {guardado ? (
-            <p className="mt-2 text-sm text-grafia">
-              Guardado. Ele aparece em <Link to="/meus" className="underline">seus resultados</Link>.
+        {/* Quatro situacoes diferentes, e antes havia uma so.
+            O botao "Guardar na minha conta" aparecia para todo mundo logado —
+            inclusive para quem ja era dono do resultado, o que fazia parecer
+            que era preciso pedir o que ja era seu, e inclusive para quem abriu
+            o link de outra pessoa, oferecendo guardar o que nao e dele. */}
+        {dados.meu || guardado ? (
+          <div className="cartao p-5">
+            <h3 className="subtitulo text-xl">Está na sua conta</h3>
+            <p className="mt-2 text-sm leading-relaxed text-grafia">
+              Guardado automaticamente. Você volta aqui quando quiser, e daqui a um tempo
+              dá para responder de novo e ver o que mudou.
             </p>
-          ) : login ? (
-            <>
-              <p className="mt-1 text-sm text-grafia">
-                Guarde na sua conta para voltar depois e comparar com respostas futuras.
-              </p>
-              <button className="botao-forte mt-3" disabled={guardando}
-                onClick={async () => {
-                  setGuardando(true)
-                  try { await vincularSessao(login, token); setGuardado(true) }
-                  catch (e) { setErro(e.message) }
-                  setGuardando(false)
-                }}>
-                {guardando ? 'Guardando...' : 'Guardar na minha conta'}
-              </button>
-            </>
-          ) : (
-            <>
-              <p className="mt-1 text-sm leading-relaxed text-grafia">
-                Com uma conta você guarda este resultado, compara com amigos e vê o que muda
-                quando responder de novo daqui a um tempo.
-              </p>
-              <Link to={`/entrar?token=${token}`} className="botao-forte mt-3 inline-flex">
-                Criar conta e guardar
-              </Link>
-            </>
-          )}
-        </div>
+            <Link to="/conta" className="botao-leve mt-3 inline-flex">
+              Ver meus resultados
+            </Link>
+          </div>
+        ) : login && dados.orfa ? (
+          // Respondeu deslogada e entrou depois, ou sessao antiga: aqui o
+          // botao faz sentido, porque de fato falta vincular.
+          <div className="cartao p-5">
+            <h3 className="subtitulo text-xl">Guardar na sua conta</h3>
+            <p className="mt-1 text-sm leading-relaxed text-grafia">
+              Este resultado ainda não está ligado a nenhuma conta. Guarde no seu perfil para
+              voltar depois e comparar com respostas futuras.
+            </p>
+            {erro && <p className="mt-2 text-sm text-red-700">{erro}</p>}
+            <button className="botao-forte mt-3" disabled={guardando}
+              onClick={async () => {
+                setGuardando(true)
+                try { await vincularSessao(login, token); setGuardado(true) }
+                catch (e) { setErro(e.message) }
+                setGuardando(false)
+              }}>
+              {guardando ? 'Guardando...' : 'Guardar na minha conta'}
+            </button>
+          </div>
+        ) : login ? (
+          // Logado, mas o resultado e de outra pessoa: e um link compartilhado.
+          // Nao ha nada para guardar — ha um convite a responder o proprio.
+          <div className="cartao p-5">
+            <h3 className="subtitulo text-xl">Este resultado é de outra pessoa</h3>
+            <p className="mt-1 text-sm leading-relaxed text-grafia">
+              Alguém compartilhou com você. Responda o seu e compare os dois lado a lado.
+            </p>
+            <Link to="/responder?modo=long" className="botao-forte mt-3 inline-flex">
+              Responder o meu
+            </Link>
+          </div>
+        ) : (
+          <div className="cartao p-5">
+            <h3 className="subtitulo text-xl">Guardar este resultado</h3>
+            <p className="mt-1 text-sm leading-relaxed text-grafia">
+              Com uma conta você guarda este resultado, compara com amigos e vê o que muda
+              quando responder de novo daqui a um tempo.
+            </p>
+            <Link to={`/entrar?token=${token}`} className="botao-forte mt-3 inline-flex">
+              Criar conta e guardar
+            </Link>
+          </div>
+        )}
 
-        <p className="border-t border-borda pt-6 text-xs text-grafia">
-          Guarde este link: sem conta, é por ele que você volta ao seu resultado.
-        </p>
+        {!login && (
+          <p className="border-t border-borda pt-6 text-xs text-grafia">
+            Guarde este link: sem conta, é por ele que você volta ao seu resultado.
+          </p>
+        )}
       </div>
     </div>
   )

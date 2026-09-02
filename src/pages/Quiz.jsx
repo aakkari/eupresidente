@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Enviar from '../components/Enviar.jsx'
+import { useAuth } from '../lib/useAuth.js'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { iniciarSessao, salvarRespostas, finalizarSessao } from '../lib/api.js'
+import { iniciarSessao, salvarRespostas, finalizarSessao, vincularSessao } from '../lib/api.js'
 
 const OPCOES = [
   { v: -2, r: 'Discordo totalmente' },
@@ -39,8 +40,13 @@ export default function Quiz() {
   const [consentimento, setConsentimento] = useState(false)
   const [salvandoAgora, setSalvandoAgora] = useState(false)
   const pendentes = useRef([])
+  const { token: login, carregando: carregandoLogin } = useAuth()
 
   useEffect(() => {
+    // Espera o login resolver: criar a sessao antes disso a faria nascer orfa
+    // justamente para quem esta logado, que e o caso que este efeito conserta.
+    if (carregandoLogin) return
+
     const rascunho = lerRascunho()
     // Retoma sozinho quando e o mesmo modo: perguntar "quer continuar?" para
     // quem so recarregou a pagina e atrito sem ganho.
@@ -50,13 +56,13 @@ export default function Quiz() {
       setI(rascunho.i ?? 0)
       return
     }
-    iniciarSessao(modo, Object.fromEntries(params))
+    iniciarSessao(modo, Object.fromEntries(params), login)
       .then(s => {
         setSessao(s)
         gravarRascunho({ modo, token: s.token, perguntas: s.perguntas, instrumento: s.instrumento, respostas: {}, i: 0 })
       })
       .catch(e => setErro(e.message))
-  }, [modo])
+  }, [modo, carregandoLogin, login])
 
   const perguntas = sessao?.perguntas ?? []
   const atual = perguntas[i]
@@ -107,6 +113,12 @@ export default function Quiz() {
         consentimento_pesquisa: modo === 'long' ? consentimento : false,
         policy_version: 'v1',
       })
+      // Rede para quem entrou na conta depois de comecar: a sessao nasceu
+      // orfa, e vincular aqui evita o resultado ficar sem dono. Idempotente —
+      // claim_session recusa sessao ja vinculada, e falhar aqui nao pode
+      // segurar a pessoa longe do resultado dela.
+      if (login) await vincularSessao(login, sessao.token).catch(() => {})
+
       limparRascunho()
       ir(`/resultado?token=${sessao.token}`)
     } catch (e) {

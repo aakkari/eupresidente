@@ -30,8 +30,10 @@ async function chamar(rota, { metodo = 'GET', corpo, token } = {}) {
   return dados
 }
 
-export const iniciarSessao = (mode, utm) =>
-  chamar('session-start', { metodo: 'POST', corpo: { mode, utm } })
+// O login vai junto quando existe: e ele que faz a sessao ja nascer da pessoa,
+// em vez de virar orfa e depender de um clique no fim.
+export const iniciarSessao = (mode, utm, login) =>
+  chamar('session-start', { metodo: 'POST', corpo: { mode, utm }, token: login })
 
 export const salvarRespostas = (token, respostas) =>
   chamar('session-answer', { metodo: 'POST', corpo: { token, respostas } })

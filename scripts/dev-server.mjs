@@ -229,6 +229,7 @@ const rotas = {
       todos_arquetipos: archetypes.map(resumir),
       nivel: nivelDemo,
       meu: nivelDemo !== 'anonimo',
+      orfa: process.env.ORFA === '1',
       trava: bloqueados.length
         ? { proximo_nivel: proximoNivel, blocos: bloqueados,
             preco_centavos: config.assinatura.preco_centavos,
