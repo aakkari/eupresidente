@@ -107,7 +107,10 @@ function Resultado({ r, token, aoApagar }) {
 
   return (
     <div className="cartao overflow-hidden">
-      <div className="flex items-center gap-4 p-4">
+      {/* flex-wrap e a linha de botoes ocupando a largura toda no celular: em
+          390px os tres botoes competiam com o nome da familia e o "Apagar"
+          saia para fora do cartao, cortado e sem como clicar. */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-3 p-4">
         <span className="w-12 shrink-0 text-2xl font-semibold tabular-nums tracking-apertado">
           {r.posicao?.posicao ?? '—'}
         </span>
@@ -118,7 +121,7 @@ function Resultado({ r, token, aoApagar }) {
             {new Date(r.quando).toLocaleDateString('pt-BR')}
           </span>
         </span>
-        <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
+        <div className="flex w-full shrink-0 flex-wrap gap-1.5 sm:w-auto sm:justify-end">
           <Link to={`/resultado?token=${r.token}`} className="botao-leve text-xs">Abrir</Link>
           <button onClick={() => setAberto(a => !a)} className="botao-leve text-xs">
             {aberto ? 'Fechar' : 'Enviar / card'}
