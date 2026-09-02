@@ -111,3 +111,5 @@ export const adminPerfis = (token, instrumento) =>
 
 export const adminSalvarPerfil = (token, corpo) =>
   chamar('admin-perfis', { metodo: 'PATCH', corpo, token })
+
+export const adminResumo = (token) => chamar('admin-resumo', { token })

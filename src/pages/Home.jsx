@@ -47,11 +47,8 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="relative mx-auto w-full max-w-md lg:max-w-none">
+          <div className="mx-auto w-full max-w-md lg:max-w-none">
             <MapaArte className="w-full" comEixos />
-            <div className="absolute inset-x-0 -bottom-4 mx-auto w-[86%] rounded-xl border border-borda bg-white p-4">
-              <ReguaArte className="w-full" />
-            </div>
           </div>
         </div>
       </section>

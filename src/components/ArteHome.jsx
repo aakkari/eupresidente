@@ -4,48 +4,93 @@
 // marca sinaliza lado antes da primeira pergunta.
 
 export function MapaArte({ className = '', preencher = false, comEixos = false }) {
-  // Posicoes soltas, sem correspondencia com familia nenhuma: e ilustracao,
-  // e passar por dado seria mentir na vitrine.
+  // Uma composicao so, e nao um mapa com um card de regua encostado por cima.
+  // A pergunta que a arte da home responde e "o que eu vou receber": um ponto
+  // num campo politico E um numero de 1 a 100. Mostrar as duas coisas ligadas
+  // pela mesma linha diz isso melhor do que os dois widgets empilhados.
+  //
+  // Posicoes soltas, sem correspondencia com familia nenhuma: e ilustracao, e
+  // passar por dado seria mentir na vitrine.
   const pontos = [
-    [18, 24], [31, 41], [44, 18], [58, 33], [72, 22], [83, 47],
-    [26, 63], [39, 78], [52, 58], [67, 71], [79, 84], [14, 86],
-    [61, 12], [88, 63], [47, 92],
+    [18, 20], [31, 35], [44, 15], [58, 28], [72, 19], [83, 40],
+    [26, 54], [39, 66], [52, 49], [67, 60], [79, 71], [14, 73],
+    [61, 10], [85, 58], [47, 78],
   ]
+  const eu = { x: 34, y: 57, n: 22 }
+
+  // A regua vive na mesma caixa, embaixo do campo. O y de 88 a 96 e o rodape
+  // da arte; acima disso e mapa.
+  const reguaY = 90
+
   return (
-    // preencher: corta as bordas para ocupar a caixa inteira, em vez de
-    // encolher o mapa ate ele virar um detalhe ilegivel.
     <svg viewBox="0 0 100 100" className={className} aria-hidden="true"
          preserveAspectRatio={preencher ? 'xMidYMid slice' : 'xMidYMid meet'}>
       <defs>
         <radialGradient id="halo">
-          <stop offset="0%" stopColor="#0a0a0b" stopOpacity="0.10" />
+          <stop offset="0%" stopColor="#0a0a0b" stopOpacity="0.12" />
           <stop offset="100%" stopColor="#0a0a0b" stopOpacity="0" />
         </radialGradient>
       </defs>
-      <line x1="50" y1="2" x2="50" y2="98" stroke="#e4e4e4" strokeWidth="0.5" />
-      <line x1="2" y1="50" x2="98" y2="50" stroke="#e4e4e4" strokeWidth="0.5" />
+
+      {/* Campo politico. Os quatro cantos escritos sao o que faz a arte dizer
+          "isto e politica" em vez de "isto e um padrao de bolinhas". */}
+      <line x1="50" y1="8" x2="50" y2="82" stroke="#e4e4e4" strokeWidth="0.5" />
+      <line x1="4" y1="45" x2="96" y2="45" stroke="#e4e4e4" strokeWidth="0.5" />
       {[25, 75].map(v => (
         <g key={v}>
-          <line x1={v} y1="2" x2={v} y2="98" stroke="#efefef" strokeWidth="0.4" />
-          <line x1="2" y1={v} x2="98" y2={v} stroke="#efefef" strokeWidth="0.4" />
+          <line x1={v} y1="8" x2={v} y2="82" stroke="#f1f1f1" strokeWidth="0.4" />
+          <line x1="4" y1={8 + (v / 100) * 74} x2="96" y2={8 + (v / 100) * 74}
+                stroke="#f1f1f1" strokeWidth="0.4" />
         </g>
       ))}
-      {pontos.map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r="1.6" fill="none" stroke="#a3a3a8" strokeWidth="0.7" />
-      ))}
-      <circle cx="34" cy="66" r="14" fill="url(#halo)" />
-      <circle cx="34" cy="66" r="3.4" fill="#0a0a0b" />
-      <circle cx="34" cy="66" r="6.5" fill="none" stroke="#0a0a0b" strokeWidth="0.6" opacity="0.35" />
 
-      {/* Nomes dos eixos: sem eles o mapa e um padrao bonito e mudo. Com
-          eles, a pessoa entende em dois segundos o que vai receber. */}
       {comEixos && (
-        <g fontSize="3.1" fill="#6b6b70" fontFamily="Inter, system-ui, sans-serif">
-          <text x="50" y="6"  textAnchor="middle">ordem</text>
-          <text x="50" y="88" textAnchor="middle">liberdade</text>
-          <text x="3"  y="51" textAnchor="start">Estado</text>
-          <text x="97" y="51" textAnchor="end">mercado</text>
-          <text x="34" y="59" textAnchor="middle" fill="#0a0a0b" fontSize="3.4" fontWeight="600">você</text>
+        <g fontSize="2.8" fill="#a3a3a8" fontFamily="Inter, system-ui, sans-serif">
+          <text x="5"  y="12">esquerda autoritária</text>
+          <text x="95" y="12" textAnchor="end">direita autoritária</text>
+          <text x="5"  y="80">esquerda libertária</text>
+          <text x="95" y="80" textAnchor="end">direita libertária</text>
+        </g>
+      )}
+
+      {pontos.map(([x, y], i) => (
+        <circle key={i} cx={x} cy={y} r="1.5" fill="none" stroke="#b9b9be" strokeWidth="0.7" />
+      ))}
+
+      <circle cx={eu.x} cy={eu.y} r="13" fill="url(#halo)" />
+      <circle cx={eu.x} cy={eu.y} r="3.2" fill="#0a0a0b" />
+      <circle cx={eu.x} cy={eu.y} r="6.2" fill="none" stroke="#0a0a0b" strokeWidth="0.5" opacity="0.3" />
+
+      {/* A linha que liga o ponto ao numero. E ela que transforma duas
+          ilustracoes em uma explicacao. */}
+      <line x1={eu.x} y1={eu.y + 6.6} x2={eu.n} y2={reguaY - 4}
+            stroke="#0a0a0b" strokeWidth="0.4" strokeDasharray="1.4 1.4" opacity="0.35" />
+
+      {comEixos && (
+        <g fontSize="2.9" fill="#6b6b70" fontFamily="Inter, system-ui, sans-serif">
+          {/* Nas bordas do eixo horizontal, e nao no rodape: embaixo eles
+              ficavam no caminho da linha que liga o ponto ao numero, e a faixa
+              de baixo e da regua. */}
+          <text x="4"  y="43.5">Estado</text>
+          <text x="96" y="43.5" textAnchor="end">mercado</text>
+          <text x={eu.x + 5.5} y={eu.y + 1} fill="#0a0a0b" fontSize="3.4" fontWeight="600">você</text>
+        </g>
+      )}
+
+      {/* Regua de 1 a 100 integrada. */}
+      <line x1="4" y1={reguaY} x2="96" y2={reguaY} stroke="#e4e4e4" strokeWidth="1.2"
+            strokeLinecap="round" />
+      {[...Array(21)].map((_, i) => {
+        const x = 4 + i * 4.6
+        return <line key={i} x1={x} y1={reguaY - (i % 5 === 0 ? 2.6 : 1.5)} x2={x} y2={reguaY + 1.5}
+                     stroke={i % 5 === 0 ? '#b9b9be' : '#e4e4e4'} strokeWidth="0.45" />
+      })}
+      <circle cx={eu.n} cy={reguaY} r="2.6" fill="#0a0a0b" />
+
+      {comEixos && (
+        <g fontSize="2.6" fill="#a3a3a8" fontFamily="Inter, system-ui, sans-serif">
+          <text x="4" y={reguaY + 6}>1 · extrema esquerda</text>
+          <text x="96" y={reguaY + 6} textAnchor="end">extrema direita · 100</text>
         </g>
       )}
     </svg>

@@ -32,10 +32,10 @@ export default function AdminLayout() {
     <div className="mx-auto max-w-5xl px-6 py-8">
       <div className="mb-6 flex flex-wrap items-start justify-between gap-x-4 gap-y-2 border-b border-borda pb-4">
         <nav className="flex flex-wrap gap-1">
-          {[['usuarios', 'Usuários'], ['populacao', 'População'], ['comunidades', 'Comunidades'],
+          {[['.', 'Início'], ['usuarios', 'Usuários'], ['populacao', 'População'], ['comunidades', 'Comunidades'],
             ['perguntas', 'Perguntas'], ['perfis', 'Perfis'], ['metricas', 'Métricas'],
             ['plano', 'Plano'], ['assinantes', 'Assinantes'], ['contato', 'Contato']].map(([to, label]) => (
-            <NavLink key={to} to={to}
+            <NavLink key={to} to={to} end={to === '.'}
               className={({ isActive }) =>
                 `rounded px-3 py-1.5 text-sm ${isActive ? 'bg-tinta text-papel' : 'text-grafia hover:text-tinta'}`}>
               {label}

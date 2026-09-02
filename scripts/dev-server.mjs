@@ -266,6 +266,22 @@ const rotas = {
 
   'admin-assinantes': (_body, _q, res) => json(res, { assinantes: [] }),
 
+  'admin-resumo': (_body, _q, res) => {
+    const membros = comunidadeDemo.membros()
+    const j = (n) => ({ rotulo: n.rotulo, contas: n.k * 3, questionarios: n.k * 4,
+      iniciados: n.k * 6, perfis: n.k * 2, assinaturas: Math.max(0, n.k - 1),
+      receita_centavos: Math.max(0, n.k - 1) * 4990, comunidades: Math.max(0, n.k - 2),
+      convites: n.k * 2, convites_aceitos: n.k, mensagens: n.k })
+    json(res, {
+      janelas: ['7d', '30d', '90d', 'tudo'],
+      dados: { '7d': j({ rotulo: '7 dias', k: 2 }), '30d': j({ rotulo: '30 dias', k: 5 }),
+               '90d': j({ rotulo: '90 dias', k: 9 }), tudo: j({ rotulo: 'Tudo', k: 12 }) },
+      hoje: { contas: 41, contas_confirmadas: 38, assinantes: 6, perfis_preenchidos: 23,
+              questionarios: membros.length * 4, conclusao: 0.78, resultados: membros.length * 4,
+              comunidades: 3, mensagens_novas: 2, receita_centavos: 6 * 4990 },
+    })
+  },
+
   'admin-usuarios': (_body, q, res) => {
     const usuarios = comunidadeDemo.membros().map((m, i) => ({
       id: m.user_id, email: `${m.nome.split(' ')[0].toLowerCase()}@exemplo.com`,
