@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { tinta } from '../lib/cor'
 
 // Vistas do mesmo resultado. Um quadrante so nunca da conta de seis eixos —
 // trocar os eixos e o que permite ver combinacoes que o mapa classico esconde.
@@ -65,7 +66,7 @@ export default function MatrizPolitica({ vetor, familias, minhaFamilia }) {
 
   const eu = { x: px(Number(vetor?.[vista.x.eixo] ?? 0)),
                y: py(Number(vetor?.[vista.y.eixo] ?? 0), vista.y.inverter) }
-  const cor = minhaFamilia?.color ?? '#12141a'
+  const cor = tinta(minhaFamilia?.color)
   // Todas rotuladas. Hover nao existe em celular, e ponto sem nome nao informa
   // nada — o halo branco no texto resolve a legibilidade na sobreposicao.
   const proximas = new Set(pontos.slice(0, 3).map(p => p.id))

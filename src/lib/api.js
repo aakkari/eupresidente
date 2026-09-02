@@ -59,3 +59,8 @@ export const vincularSessao = (token, sessaoToken, display_name) =>
 export const meusResultados = (token) => chamar('meus-resultados', { token })
 
 export const resumoInstrumento = () => chamar('instrumento')
+
+export const meuPerfil = (token) => chamar('perfil', { token })
+
+export const salvarPerfil = (token, campos) =>
+  chamar('perfil', { metodo: 'PATCH', corpo: campos, token })

@@ -3,7 +3,7 @@
 // explicar. Tudo em preto e branco, porque um instrumento politico com cor de
 // marca sinaliza lado antes da primeira pergunta.
 
-export function MapaArte({ className = '', preencher = false }) {
+export function MapaArte({ className = '', preencher = false, comEixos = false }) {
   // Posicoes soltas, sem correspondencia com familia nenhuma: e ilustracao,
   // e passar por dado seria mentir na vitrine.
   const pontos = [
@@ -36,6 +36,18 @@ export function MapaArte({ className = '', preencher = false }) {
       <circle cx="34" cy="66" r="14" fill="url(#halo)" />
       <circle cx="34" cy="66" r="3.4" fill="#0a0a0b" />
       <circle cx="34" cy="66" r="6.5" fill="none" stroke="#0a0a0b" strokeWidth="0.6" opacity="0.35" />
+
+      {/* Nomes dos eixos: sem eles o mapa e um padrao bonito e mudo. Com
+          eles, a pessoa entende em dois segundos o que vai receber. */}
+      {comEixos && (
+        <g fontSize="3.1" fill="#6b6b70" fontFamily="Inter, system-ui, sans-serif">
+          <text x="50" y="6"  textAnchor="middle">ordem</text>
+          <text x="50" y="88" textAnchor="middle">liberdade</text>
+          <text x="3"  y="51" textAnchor="start">Estado</text>
+          <text x="97" y="51" textAnchor="end">mercado</text>
+          <text x="34" y="59" textAnchor="middle" fill="#0a0a0b" fontSize="3.4" fontWeight="600">você</text>
+        </g>
+      )}
     </svg>
   )
 }

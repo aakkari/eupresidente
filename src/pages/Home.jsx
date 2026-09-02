@@ -48,7 +48,7 @@ export default function Home() {
           </div>
 
           <div className="relative mx-auto w-full max-w-md lg:max-w-none">
-            <MapaArte className="w-full" />
+            <MapaArte className="w-full" comEixos />
             <div className="absolute inset-x-0 -bottom-4 mx-auto w-[86%] rounded-xl border border-borda bg-white p-4">
               <ReguaArte className="w-full" />
             </div>
@@ -78,7 +78,7 @@ export default function Home() {
 
             <Peca titulo="Seu ponto no mapa"
                   texto="Quinze famílias políticas reais como referência, e você entre elas. Com história, figuras, forças, fraquezas e onde cada uma é forte no mundo.">
-              <MapaArte className="h-24 w-full" preencher />
+              <MapaArte className="h-24 w-full" preencher comEixos />
             </Peca>
           </div>
         </div>

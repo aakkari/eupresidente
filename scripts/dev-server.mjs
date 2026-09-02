@@ -190,6 +190,22 @@ const rotas = {
 
   // No modo demo o admin nao autentica: nao existe Supabase Auth aqui. Em
   // producao cada Function confere o token contra ADMIN_EMAILS.
+  perfil: (_body, _q, res) => json(res, {
+    email: 'voce@exemplo.com', full_name: '', display_name: '', phone: '',
+    desde: new Date().toISOString(), questionarios: sessoes.size,
+  }),
+
+  'meus-resultados': (_body, _q, res) => {
+    const out = []
+    for (const [token, s] of sessoes) if (s.resultado) out.push({
+      token, mode: s.mode, quando: new Date().toISOString(),
+      familia: archetypes.find(a => a.id === s.resultado.archetype_id)?.name ?? '—',
+      cor: '#0a0a0b', vector: s.resultado.vector,
+      posicao: posicaoPolitica(s.resultado.vector),
+    })
+    json(res, { resultados: out })
+  },
+
   'admin-instrument': (_body, _q, res) => json(res, {
     instrumentos: [{ ...instrumento, active: false }],
     instrumento_id: instrumento.id, perguntas: questions, arquetipos: archetypes,

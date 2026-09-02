@@ -1,5 +1,6 @@
 import { admin } from './_lib/supabase.js'
 import { json, erro, protegido } from './_lib/http.js'
+import { posicaoPolitica } from './_lib/scoring.js'
 
 // Resultados que a pessoa vinculou a propria conta.
 export default protegido(async (req) => {
@@ -32,8 +33,11 @@ export default protegido(async (req) => {
       const f = porFamilia[r.archetype_id]
       return {
         token: s?.token, mode: s?.mode, quando: r.computed_at,
-        familia: f?.name ?? r.archetype_id, cor: f?.color ?? '#12141a',
+        familia: f?.name ?? r.archetype_id, cor: f?.color ?? '#0a0a0b',
         vector: r.vector,
+        // Calculada aqui e nao no front: a formula mora no servidor, junto
+        // com o resto do motor.
+        posicao: posicaoPolitica(r.vector),
       }
     }),
   })

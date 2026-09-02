@@ -5,9 +5,11 @@ import ReguaPolitica from '../components/ReguaPolitica.jsx'
 import MatrizPolitica from '../components/MatrizPolitica.jsx'
 import Facetas from '../components/Facetas.jsx'
 import Compartilhar from '../components/Compartilhar.jsx'
+import Bloqueado from '../components/Bloqueado.jsx'
 import { useAuth } from '../lib/useAuth.js'
 import { vincularSessao } from '../lib/api.js'
 import { Link } from 'react-router-dom'
+import { tinta } from '../lib/cor.js'
 
 const EIXOS = ['ECO', 'SOC', 'AUT', 'NAC', 'DEM', 'AMB']
 
@@ -30,7 +32,7 @@ export default function Resultado() {
 
   const { resultado, arquetipo: a, arquetipo_secundario, instrumento, posicao, todos_arquetipos } = dados
   const eixos = instrumento?.axes ?? {}
-  const cor = a?.color ?? '#12141a'
+  const cor = tinta(a?.color)
 
   return (
     <div className="pb-24">
@@ -61,6 +63,7 @@ export default function Resultado() {
           )}
         </Secao>
 
+        <Trava logado={Boolean(login)} token={token} arquetipo={a}>
         {a?.history && (
           <Secao titulo="De onde vem">
             <p className="texto">{a.history}</p>
@@ -143,6 +146,7 @@ export default function Resultado() {
           <Facetas facetVector={resultado.facet_vector} facetas={instrumento?.facets}
                    eixos={eixos} cor={cor} />
         </Secao>
+        </Trava>
 
         {resultado.tensions?.length > 0 && (
           <Secao titulo="Onde você não cabe na caixa"
@@ -168,7 +172,9 @@ export default function Resultado() {
           </p>
         )}
 
-        <Compartilhar posicao={posicao} familia={a} />
+        <Secao titulo="Leve com você">
+          <Compartilhar posicao={posicao} familia={a} />
+        </Secao>
 
         {/* Guardar vem depois do resultado, nunca antes: o resultado e o
             argumento para criar a conta. */}
@@ -277,4 +283,29 @@ function Eixo({ meta, valor, confianca, cor }) {
       </div>
     </div>
   )
+}
+
+// Decide o que fica visivel sem cadastro. A posicao, a familia, o mapa e o
+// compartilhamento ficam livres: sao o que a pessoa precisa para se
+// reconhecer e para mostrar a alguem — travar isso seria travar o produto.
+function Trava({ logado, token, arquetipo, children }) {
+  if (logado) return <>{children}</>
+
+  const itens = [
+    'A história da sua família política, de onde ela nasceu e como chegou até aqui',
+    arquetipo?.curiosities?.length
+      ? `${arquetipo.curiosities.length} curiosidades que quase ninguém sabe sobre ela`
+      : 'Curiosidades sobre a tradição',
+    arquetipo?.figures?.length
+      ? `${arquetipo.figures.length} figuras históricas que carregaram essas ideias`
+      : 'As figuras históricas da tradição',
+    'Forças e fraquezas do seu perfil, incluindo as críticas que ele recebe dos próprios aliados',
+    'O ponto cego: onde essa tradição historicamente não enxerga',
+    arquetipo?.countries?.length
+      ? `Onde seu perfil é forte e onde é irrelevante, em ${arquetipo.countries.length} países`
+      : 'Onde seu perfil é forte no mundo',
+    'As 18 facetas: onde você é radical e onde é morno dentro de cada eixo',
+  ]
+
+  return <Bloqueado token={token} itens={itens}>{children}</Bloqueado>
 }
