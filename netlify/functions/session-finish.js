@@ -11,7 +11,7 @@ export default protegido(async (req) => {
 
   const sb = admin()
   const { data: sessao } = await sb.from('sessions')
-    .select('id, status, mode, instrument_id').eq('token', body.token).maybeSingle()
+    .select('id, status, mode, instrument_id, user_id').eq('token', body.token).maybeSingle()
   if (!sessao) return erro('sessao nao encontrada', 404)
 
   // Ja calculado: devolve o mesmo resultado em vez de recalcular. Recalcular
@@ -74,6 +74,22 @@ export default protegido(async (req) => {
   }).select().single()
 
   if (error) return erro(error.message, 500)
+
+  // Perfil de quem ja comecou logado. Antes ele so nascia em session-claim,
+  // porque toda sessao nascia orfa e passava por la. Agora quem responde
+  // logado nunca vincula nada — e ficaria para sempre sem nome, inclusive no
+  // mapa da comunidade, onde o nome e o ponto todo.
+  if (sessao.user_id) {
+    const { data: perfil } = await sb.from('profiles')
+      .select('user_id').eq('user_id', sessao.user_id).maybeSingle()
+    if (!perfil) {
+      const { data: dono } = await sb.auth.admin.getUserById(sessao.user_id)
+      const nome = dono?.user?.user_metadata?.display_name
+        || dono?.user?.email?.split('@')[0] || null
+      await sb.from('profiles')
+        .insert({ user_id: sessao.user_id, display_name: nome?.slice(0, 60) ?? null })
+    }
+  }
 
   if (body.consentimento_pesquisa === true) {
     await sb.from('consents').insert({

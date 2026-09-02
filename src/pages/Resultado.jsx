@@ -223,6 +223,21 @@ export default function Resultado() {
             inclusive para quem ja era dono do resultado, o que fazia parecer
             que era preciso pedir o que ja era seu, e inclusive para quem abriu
             o link de outra pessoa, oferecendo guardar o que nao e dele. */}
+        {params.get('conta') === 'confirmar' && !login && (
+          // A conta foi criada mas o Supabase esta exigindo confirmacao por
+          // e-mail. Nao da para fingir que deu tudo certo: o resultado esta
+          // aqui, a conta ainda nao abriu, e a pessoa precisa saber dos dois.
+          <div className="cartao p-5">
+            <h3 className="subtitulo text-xl">Falta confirmar seu e-mail</h3>
+            <p className="mt-2 text-sm leading-relaxed text-grafia">
+              Sua conta foi criada, mas só abre depois que você clicar no link que enviamos.
+              Procure na caixa de entrada e no spam. Enquanto isso,{' '}
+              <strong>guarde o endereço desta página</strong> — é por ele que você volta ao
+              seu resultado. Depois de confirmar, entre e clique em "Guardar na minha conta".
+            </p>
+          </div>
+        )}
+
         {dados.meu || guardado ? (
           <div className="cartao p-5">
             <h3 className="subtitulo text-xl">Está na sua conta</h3>

@@ -1,0 +1,70 @@
+import { useState } from 'react'
+
+// Conta criada na tela final do questionario, e nao na primeira pergunta.
+//
+// Pedir nome e e-mail antes da pergunta 1 parece inofensivo e nao e: e um
+// pedagio cobrado antes de qualquer valor, no assunto em que a pessoa mais
+// hesita em se identificar. Aqui e o contrario — ela ja gastou doze minutos,
+// o resultado esta pronto do outro lado do botao, e a conta virou o caminho
+// mais curto ate ele em vez de um obstaculo no caminho.
+export default function AbrirConta({ enviando, erro, onEnviar }) {
+  const [modo, setModo] = useState('criar')
+  const [nome, setNome] = useState('')
+  const [email, setEmail] = useState('')
+  const [senha, setSenha] = useState('')
+  const criar = modo === 'criar'
+
+  function enviar(e) {
+    e.preventDefault()
+    onEnviar({ modo, nome: nome.trim(), email: email.trim().toLowerCase(), senha })
+  }
+
+  return (
+    <form onSubmit={enviar} className="cartao mt-6 p-5">
+      <h3 className="subtitulo text-xl">
+        {criar ? 'Seu resultado está pronto' : 'Entre na sua conta'}
+      </h3>
+      <p className="mt-1.5 text-sm leading-relaxed text-grafia">
+        {criar
+          ? 'Falta abrir sua conta para ver. É gratuita, leva quinze segundos, e é ela que guarda o resultado — para você voltar quando quiser, comparar com amigos e responder de novo daqui a um tempo.'
+          : 'Entre e o resultado abre na sua conta.'}
+      </p>
+
+      {criar && (
+        <input className="campo mt-4" placeholder="nome completo" value={nome} required
+               minLength={2} maxLength={60} autoComplete="name"
+               onChange={e => setNome(e.target.value)} />
+      )}
+      <input className={`campo ${criar ? 'mt-2' : 'mt-4'}`} type="email" placeholder="seu e-mail"
+             value={email} required autoComplete="email"
+             onChange={e => setEmail(e.target.value)} />
+      <input className="campo mt-2" type="password" value={senha} required minLength={6}
+             placeholder={criar ? 'crie uma senha (6 letras ou mais)' : 'sua senha'}
+             autoComplete={criar ? 'new-password' : 'current-password'}
+             onChange={e => setSenha(e.target.value)} />
+
+      {erro && <p className="mt-3 text-sm text-red-700">{erro}</p>}
+
+      <button className="botao-forte mt-4 w-full" disabled={enviando}>
+        {enviando ? 'Calculando...'
+          : criar ? 'Abra sua conta gratuita para ver seu resultado'
+          : 'Entrar e ver meu resultado'}
+      </button>
+
+      {/* Nao existe "ver sem conta". O resultado e o gatilho da conta, e este
+          e o unico instante em que ele vale alguma coisa para quem acabou de
+          responder. A unica outra porta e para quem ja tem conta — isso nao e
+          escapar, e entrar pela porta certa. */}
+      <button type="button" disabled={enviando} className="mt-4 w-full text-sm text-grafia hover:text-tinta"
+              onClick={() => setModo(criar ? 'entrar' : 'criar')}>
+        {criar ? 'Já tenho conta' : 'Criar uma conta'}
+      </button>
+
+      <p className="mt-5 text-xs leading-relaxed text-grafia">
+        Suas respostas já estão salvas. Sua opinião política é dado sensível: a conta guarda
+        seu resultado e nada mais — nada vai para a base de pesquisa sem você autorizar,
+        separadamente.
+      </p>
+    </form>
+  )
+}

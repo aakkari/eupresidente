@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Enviar from '../components/Enviar.jsx'
+import AbrirConta from '../components/AbrirConta.jsx'
 import { useAuth } from '../lib/useAuth.js'
+import { getSupabase, temSupabase } from '../lib/supabase.js'
+import { emPortugues } from '../lib/erroAuth.js'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { iniciarSessao, salvarRespostas, finalizarSessao, vincularSessao } from '../lib/api.js'
 
@@ -100,27 +103,58 @@ export default function Quiz() {
     descarregar()
   }
 
-  async function concluir() {
+  // Fecha a sessao e calcula o resultado. Idempotente de proposito: se a
+  // criacao da conta falhar logo depois, a pessoa corrige o e-mail e tenta de
+  // novo sem reenviar noventa respostas.
+  const finalizada = useRef(false)
+  async function fechar() {
+    if (finalizada.current) return
+    await descarregar(true)
+    // Reenvia tudo por seguranca: e idempotente por (sessao, pergunta), e o
+    // custo de uma requisicao a mais e menor que o de perder uma resposta.
+    const todas = Object.entries(respostas).map(([question_id, value]) =>
+      ({ question_id, value, answered_at: tempos[question_id] }))
+    if (todas.length) await salvarRespostas(sessao.token, todas)
+    await finalizarSessao(sessao.token, {
+      consentimento_pesquisa: modo === 'long' ? consentimento : false,
+      policy_version: 'v1',
+    })
+    finalizada.current = true
+  }
+
+  // conta == null e o caminho de quem ja esta logado ou preferiu ver sem conta.
+  async function concluir(conta = null) {
     setEnviando(true); setErro(null)
     try {
-      await descarregar(true)
-      // Reenvia tudo por seguranca: e idempotente por (sessao, pergunta), e o
-      // custo de uma requisicao a mais e menor que o de perder uma resposta.
-      const todas = Object.entries(respostas).map(([question_id, value]) =>
-        ({ question_id, value, answered_at: tempos[question_id] }))
-      if (todas.length) await salvarRespostas(sessao.token, todas)
-      await finalizarSessao(sessao.token, {
-        consentimento_pesquisa: modo === 'long' ? consentimento : false,
-        policy_version: 'v1',
-      })
+      await fechar()
+
+      let tk = login
+      let confirmar = false
+      if (conta) {
+        const sb = getSupabase()
+        const { data, error } = conta.modo === 'entrar'
+          ? await sb.auth.signInWithPassword({ email: conta.email, password: conta.senha })
+          : await sb.auth.signUp({
+              email: conta.email,
+              password: conta.senha,
+              options: { data: { display_name: conta.nome } },
+            })
+        if (error) throw new Error(emPortugues(error.message))
+        tk = data.session?.access_token ?? null
+        // Com "confirmar e-mail" ligado no Supabase a conta nasce sem sessao.
+        // O resultado nao pode ficar refem de um e-mail que pode nem chegar:
+        // segue para a tela e avisa la o que falta.
+        confirmar = !tk
+      }
+
       // Rede para quem entrou na conta depois de comecar: a sessao nasceu
       // orfa, e vincular aqui evita o resultado ficar sem dono. Idempotente —
       // claim_session recusa sessao ja vinculada, e falhar aqui nao pode
       // segurar a pessoa longe do resultado dela.
-      if (login) await vincularSessao(login, sessao.token).catch(() => {})
+      if (tk) await vincularSessao(tk, sessao.token, conta?.nome).catch(() => {})
 
       limparRascunho()
-      ir(`/resultado?token=${sessao.token}`)
+      ir(`/resultado?token=${sessao.token}${confirmar ? '&conta=confirmar' : ''}`)
     } catch (e) {
       setErro(e.message); setEnviando(false)
     }
@@ -159,11 +193,22 @@ export default function Quiz() {
         </label>
       )}
 
-      {erro && <p className="mt-4 text-sm text-red-700">{erro}</p>}
-
-      <button onClick={concluir} disabled={enviando} className="botao-forte mt-6 w-full">
-        {enviando ? 'Calculando...' : 'Ver meu resultado'}
-      </button>
+      {/* A conta nasce aqui, e o resultado esta atras dela. Antes a tela final
+          tinha so "Ver meu resultado", e guardar virava um segundo passo,
+          depois, numa outra tela, num botao que a pessoa nao tinha motivo para
+          procurar — e por isso quase ninguem dava. Este e o unico instante em
+          que a conta vale alguma coisa para ela: o resultado esta pronto, do
+          outro lado. */}
+      {login || !temSupabase() ? (
+        <>
+          {erro && <p className="mt-4 text-sm text-red-700">{erro}</p>}
+          <button onClick={() => concluir()} disabled={enviando} className="botao-forte mt-6 w-full">
+            {enviando ? 'Calculando...' : 'Ver meu resultado'}
+          </button>
+        </>
+      ) : (
+        <AbrirConta enviando={enviando} erro={erro} onEnviar={concluir} />
+      )}
 
       {/* Convidar sem sair da tela. O melhor momento para chamar alguem e este:
           a pessoa acabou de investir tempo, ainda nao viu o resultado, e a

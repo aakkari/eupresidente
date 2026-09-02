@@ -141,6 +141,29 @@ A lição que fica: **trava no servidor não vale nada enquanto existir outra
 porta para o mesmo dado.** Ao fechar um caminho, procure os outros — foi o mesmo
 erro do `todos_arquetipos` na decisão 11, repetido uma camada abaixo.
 
+**17. A conta nasce na tela final do questionário, e o resultado está atrás dela.**
+Nome, e-mail e senha são pedidos depois da última pergunta — nunca antes da
+primeira. Pedir identificação na pergunta 1 é pedágio cobrado antes de qualquer
+valor, no assunto em que a pessoa mais hesita em se identificar; pedir no fim é
+o contrário, porque o resultado já está pronto do outro lado do botão.
+
+Não existe "ver sem criar conta". A única outra porta é "já tenho conta", que
+não é escapar, é entrar pela porta certa.
+
+A trava tem uma válvula, e ela não é opcional: se o Supabase estiver com
+confirmação de e-mail ligada, o `signUp` devolve conta sem sessão, e aí o
+resultado aparece assim mesmo, com `?conta=confirmar` avisando o que falta.
+Sem isso, quem tem provedor que atrasa ou bloqueia o e-mail responde noventa
+perguntas e não recebe nada — foi exatamente o que aconteceu com o primeiro
+usuário de fora da família.
+
+O que veio antes disto era pior de um jeito silencioso: a sessão nascia órfã,
+o vínculo dependia de um clique em "Guardar na minha conta" numa tela seguinte,
+e quase ninguém dava esse clique. Sete questionários de noventa perguntas
+ficaram sem dono antes de alguém perceber. Quem responde logado agora já é dono
+desde o `session-start`, e o perfil é criado no `session-finish` — antes ele só
+nascia no `session-claim`, que essa gente nunca mais chama.
+
 ---
 
 ## Estrutura
