@@ -41,8 +41,12 @@ export default function Home() {
             </div>
 
             <p className="mt-5 text-sm text-tenue">
-              {info
-                ? `${info.completa.perguntas} perguntas, cerca de ${info.completa.minutos} minutos · versão rápida com ${info.curta.perguntas}, em ${info.curta.minutos}`
+              {/* info?.completa, e nao so info: uma resposta 200 sem corpo JSON
+                  (pagina de erro do Netlify, funcao fria) chega aqui como {},
+                  que e verdadeiro — e ai a landing inteira virava tela branca
+                  por causa de uma linha de rodape. */}
+              {info?.completa
+                ? `${info.completa.perguntas} perguntas, cerca de ${info.completa.minutos} minutos · versão rápida com ${info.curta?.perguntas}, em ${info.curta?.minutos}`
                 : 'Duas versões: uma completa e uma rápida.'}
               {' '}O resultado abre numa conta gratuita.
             </p>

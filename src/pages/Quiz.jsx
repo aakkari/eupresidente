@@ -15,14 +15,28 @@ const OPCOES = [
 ]
 
 const CHAVE = 'eup:rascunho'
+const VALIDADE = 24 * 60 * 60 * 1000
 
 // Rascunho local. O envio ao servidor e a fonte da verdade; isto aqui existe
 // para a pessoa reabrir a aba e continuar de onde parou sem depender de conta.
 const lerRascunho = () => {
-  try { return JSON.parse(localStorage.getItem(CHAVE) || 'null') } catch { return null }
+  try {
+    const d = JSON.parse(localStorage.getItem(CHAVE) || 'null')
+    if (!d) return null
+    // Duas razoes para ignorar um rascunho: ele ja foi entregue ao servidor,
+    // ou e velho demais. Quem volta ao questionario nessas duas situacoes quer
+    // responder de novo, nao continuar — e retomar prendia a pessoa numa tela
+    // de "Terminou." da qual nao havia saida, nem com F5.
+    if (d.entregue || !d.quando || Date.now() - d.quando > VALIDADE) {
+      limparRascunho()
+      return null
+    }
+    return d
+  } catch { return null }
 }
 const gravarRascunho = (d) => {
-  try { localStorage.setItem(CHAVE, JSON.stringify(d)) } catch { /* modo privado */ }
+  try { localStorage.setItem(CHAVE, JSON.stringify({ ...d, quando: Date.now() })) }
+  catch { /* modo privado */ }
 }
 const limparRascunho = () => {
   try { localStorage.removeItem(CHAVE) } catch { /* modo privado */ }
@@ -41,6 +55,7 @@ export default function Quiz() {
   const [enviando, setEnviando] = useState(false)
   const [consentimento, setConsentimento] = useState(false)
   const [salvandoAgora, setSalvandoAgora] = useState(false)
+  const [confirmandoNovo, setConfirmandoNovo] = useState(false)
   const pendentes = useRef([])
   const { token: login, carregando: carregandoLogin } = useAuth()
 
@@ -119,6 +134,9 @@ export default function Quiz() {
       policy_version: 'v1',
     })
     finalizada.current = true
+    // A partir daqui as respostas vivem no servidor. Marcar em vez de apagar
+    // porque a criacao da conta ainda pode falhar e a pessoa tentar de novo.
+    gravarRascunho({ modo, token: sessao.token, entregue: true })
   }
 
   // conta == null e o caminho de quem ja esta logado ou preferiu ver sem conta.
@@ -213,6 +231,28 @@ export default function Quiz() {
           importa — abrir a conta — e dava a impressao de que clicar nele fazia
           perder o resultado. Foi para o fim do report, onde a pessoa ja viu o
           que ganhou e sabe o que esta convidando o outro a ver. */}
+
+      {/* Saida. Quem chegou ate esta tela e foi embora sem clicar voltava aqui
+          para sempre, porque o rascunho ficava parado no fim: /responder abria
+          direto em "Terminou.", e nem o F5 tirava. Isto nao fura a trava da
+          conta — descarta e obriga a responder tudo de novo. */}
+      <div className="mt-6 text-center">
+        {confirmandoNovo ? (
+          <p className="text-xs leading-relaxed text-grafia">
+            Isto descarta este questionário e começa outro do zero.{' '}
+            <button onClick={() => { limparRascunho(); window.location.reload() }}
+                    className="underline hover:text-tinta">Descartar e recomeçar</button>
+            {' · '}
+            <button onClick={() => setConfirmandoNovo(false)}
+                    className="underline hover:text-tinta">cancelar</button>
+          </p>
+        ) : (
+          <button onClick={() => setConfirmandoNovo(true)}
+                  className="text-xs text-grafia underline hover:text-tinta">
+            começar um novo questionário
+          </button>
+        )}
+      </div>
     </div>
   )
 
