@@ -85,6 +85,20 @@ motivo `todos_arquetipos` sai resumido a id, nome, cor e centroide — mandar a
 linha inteira entregaria pela porta ao lado o conteúdo travado na porta da
 frente.
 
+**12. Na comunidade, entrar e aparecer são dois sins.**
+`group_members.shared` é o segundo: dá para estar na comunidade sem aparecer no
+mapa, e voltar atrás quando quiser. Cada mudança escreve uma linha em
+`consents` com finalidade `comunidade` — opinião política é dado sensível
+(art. 11), e consentimento sensível precisa ser demonstrável com data, não
+presumido pelo fato de a pessoa ter clicado em algum lugar. Quem não
+compartilha não aparece para ninguém, nem para quem criou a comunidade; só
+entra na contagem total, porque fingir que a pessoa não existe seria outra
+mentira.
+
+Recusa não é comunicada a quem convidou. O convite apenas deixa de estar
+pendente. Dizer "fulano recusou" transforma uma resposta privada em
+constrangimento social, e quem recusou não pediu para ter essa conversa.
+
 ---
 
 ## Estrutura
@@ -166,6 +180,20 @@ Fechar assim que os 12 perfis estiverem escritos: extrair do banco e gravar no
 `seed.sql` de uma vez. Enquanto isso, `scripts/dev-server.mjs` mostra os perfis
 sem o conteúdo rico, porque lê do seed — a página completa só aparece em
 produção, contra o banco real.
+
+---
+
+## Pendente: envio de e-mail
+
+`_lib/email.js` é a única porta para envio, no mesmo desenho do gateway de
+pagamento. Sem `RESEND_API_KEY` nada é enviado, e o convite da comunidade vira
+um link que quem convidou manda por WhatsApp ou pelo próprio e-mail. Isso não é
+só contorno: convite que chega pelo WhatsApp de quem convidou é aceito muito
+mais do que e-mail de remetente desconhecido — quando a chave existir, o e-mail
+passa a sair *também*, e o link continua aparecendo na tela.
+
+Falha de envio nunca derruba o convite: ele já existe no banco e o link
+funciona.
 
 ---
 

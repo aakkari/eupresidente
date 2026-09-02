@@ -1,26 +1,9 @@
 import { useMemo, useState } from 'react'
 import { tinta } from '../lib/cor'
+import { VISTAS, caixa, distribuirRotulos, afastado } from '../lib/matriz.js'
 
-// Vistas do mesmo resultado. Um quadrante so nunca da conta de seis eixos —
-// trocar os eixos e o que permite ver combinacoes que o mapa classico esconde.
-const VISTAS = [
-  { id: 'classico', nome: 'Economia × Autoridade',
-    x: { eixo: 'ECO', esq: 'Estado coordena', dir: 'Mercado coordena' },
-    y: { eixo: 'AUT', baixo: 'Liberdade civil', cima: 'Ordem e coerção' },
-    cantos: ['Esquerda autoritária', 'Direita autoritária', 'Esquerda libertária', 'Direita libertária'] },
-  { id: 'costumes', nome: 'Economia × Costumes',
-    x: { eixo: 'ECO', esq: 'Estado coordena', dir: 'Mercado coordena' },
-    y: { eixo: 'SOC', baixo: 'Autonomia individual', cima: 'Tradição preserva', inverter: true },
-    cantos: ['Estatista conservador', 'Liberal conservador', 'Estatista progressista', 'Liberal progressista'] },
-  { id: 'brasil', nome: 'Nação × Democracia',
-    x: { eixo: 'NAC', esq: 'Integração global', dir: 'Soberania nacional' },
-    y: { eixo: 'DEM', baixo: 'Instituições e freios', cima: 'Vontade popular direta' },
-    cantos: ['Populista global', 'Populista nacional', 'Institucional global', 'Institucional nacional'] },
-]
-
-const L = 40, R = 20, T = 20, B = 40, W = 560, H = 460   // margens e caixa
-const px = v => L + ((v + 1) / 2) * (W - L - R)
-const py = (v, inv) => T + ((1 - (inv ? -v : v)) / 2) * (H - T - B)
+const c = caixa({ W: 560, H: 460 })
+const { W, H, L, R, T, B, px, py } = c
 
 export default function MatrizPolitica({ vetor, familias, minhaFamilia }) {
   const [vistaId, setVista] = useState('classico')
@@ -37,31 +20,7 @@ export default function MatrizPolitica({ vetor, familias, minhaFamilia }) {
                   Number(f.centroid?.[vista.y.eixo] ?? 0) - Number(vetor?.[vista.y.eixo] ?? 0)),
     })).sort((a, b) => a.d - b.d)
 
-    // Rotulo do lado de dentro: na metade direita o texto vai para a esquerda
-    // do ponto, senao vaza da caixa e o nome sai cortado.
-    // Depois, anticolisao: dois rotulos a menos de 11px em y e 95px em x se
-    // sobrepoem e viram borrao — o de baixo desce ate sair da frente.
-    // Os nomes dos quadrantes entram como obstaculos fixos: sem isso um rotulo
-    // de familia cai em cima deles e os dois viram borrao ilegivel.
-    const colocados = vista.cantos.map((_, i) => ({
-      x: i % 2 ? W - R - 60 : L + 60,
-      ly: i < 2 ? T + 14 : H - B - 7,
-      aDireita: Boolean(i % 2),
-    }))
-    for (const p of [...base].sort((a, b) => a.y - b.y)) {
-      p.aDireita = p.x > L + (W - L - R) * 0.62
-      p.ly = p.y + 3
-      let mexeu = true, voltas = 0
-      while (mexeu && voltas++ < 12) {
-        mexeu = false
-        for (const q of colocados) {
-          if (q.aDireita !== p.aDireita) continue
-          if (Math.abs(q.ly - p.ly) < 11 && Math.abs(q.x - p.x) < 95) { p.ly += 11; mexeu = true }
-        }
-      }
-      colocados.push(p)
-    }
-    return base
+    return distribuirRotulos(base, { c, cantos: vista.cantos })
   }, [familias, vista, vetor])
 
   const eu = { x: px(Number(vetor?.[vista.x.eixo] ?? 0)),
@@ -116,7 +75,7 @@ export default function MatrizPolitica({ vetor, familias, minhaFamilia }) {
               <circle cx={p.x} cy={p.y} r={ativo?.id === p.id ? 5.5 : 4}
                       fill="#fff" stroke="#5b5f6b" strokeWidth="2" />
               {/* Linha guia quando o rotulo foi empurrado para longe do ponto. */}
-              {Math.abs(p.ly - p.y - 3) > 4 && (
+              {afastado(p) && (
                 <line x1={p.x + (p.aDireita ? -5 : 5)} y1={p.y}
                       x2={p.x + (p.aDireita ? -7 : 7)} y2={p.ly - 3}
                       stroke="#b9b4a9" strokeWidth="1" />

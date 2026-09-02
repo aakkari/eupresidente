@@ -14,11 +14,15 @@ export default protegido(async (req) => {
 
   if (!instrumento) return erro('nenhum instrumento publicado', 503)
 
-  const [curta, longa] = await Promise.all([
+  const [curta, longa, { data: familias }] = await Promise.all([
     sb.from('questions').select('id', { count: 'exact', head: true })
       .eq('instrument_id', instrumento.id).eq('in_short', true),
     sb.from('questions').select('id', { count: 'exact', head: true })
       .eq('instrument_id', instrumento.id).eq('in_long', true),
+    // Centroides das familias: referencia de fundo do mapa da comunidade, que
+    // nao tem um resultado de onde tirar isso. E dado publico do instrumento,
+    // nao de ninguem — por isso sai sem login, e sem o conteudo editorial.
+    sb.from('archetypes').select('id, name, color, centroid').eq('instrument_id', instrumento.id),
   ])
 
   // ~13s por pergunta, arredondado para cima: e melhor a pessoa achar que
@@ -30,5 +34,6 @@ export default protegido(async (req) => {
     label: instrumento.label,
     curta:    { perguntas: curta.count ?? 0, minutos: minutos(curta.count ?? 0) },
     completa: { perguntas: longa.count ?? 0, minutos: minutos(longa.count ?? 0) },
+    familias: familias ?? [],
   })
 })

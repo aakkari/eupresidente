@@ -81,3 +81,11 @@ export const adminConfig = (token) => chamar('admin-config', { token })
 
 export const adminSalvarConfig = (token, corpo) =>
   chamar('admin-config', { metodo: 'PUT', corpo, token })
+
+export const minhasComunidades = (token) => chamar('comunidade', { token })
+
+export const previaConvite = (convite) =>
+  chamar(`comunidade?convite=${encodeURIComponent(convite)}`)
+
+export const acaoComunidade = (token, corpo) =>
+  chamar('comunidade', { metodo: 'POST', corpo, token })

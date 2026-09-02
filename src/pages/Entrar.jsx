@@ -7,6 +7,9 @@ export default function Entrar() {
   const [params] = useSearchParams()
   const ir = useNavigate()
   const voltarPara = params.get('token')     // veio da tela de resultado
+  // Caminho interno para voltar depois de entrar. Quem clicou no link de
+  // convite de um amigo e ainda nao tinha conta perderia o convite sem isso.
+  const destino = caminhoInterno(params.get('voltar'))
   const [modo, setModo] = useState('criar')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
@@ -36,7 +39,7 @@ export default function Entrar() {
       }
       // Vincula na hora: a pessoa veio do resultado justamente para guardá-lo.
       if (voltarPara) await vincularSessao(token, voltarPara).catch(() => {})
-      ir(voltarPara ? `/resultado?token=${voltarPara}` : '/meus')
+      ir(voltarPara ? `/resultado?token=${voltarPara}` : destino ?? '/conta')
     } catch (e) {
       setErro(e.message); setIndo(false)
     }
@@ -83,3 +86,12 @@ const Caixa = ({ titulo, children }) => (
     <p className="mt-2 text-sm text-grafia">{children}</p>
   </div>
 )
+
+// So caminho interno. Aceitar uma URL qualquer aqui transformaria o link de
+// login num redirecionador aberto — mande /entrar?voltar=https://site-falso e
+// a pessoa entra na conta e cai fora do site sem perceber.
+function caminhoInterno(valor) {
+  if (!valor) return null
+  const limpo = String(valor)
+  return limpo.startsWith('/') && !limpo.startsWith('//') ? limpo : null
+}

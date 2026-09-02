@@ -142,6 +142,26 @@ const config = {
 }
 const resumir = (a) => a && ({ id: a.id, name: a.name, color: a.color, centroid: a.centroid })
 
+const NOMES_DEMO = ['Marina Prado', 'Ana Prado', 'Beto Lima', 'Carla Duarte', 'Dedé',
+                    'Eva Nakamura', 'Fábio Rocha', 'Gil', 'Helena Braga']
+const comunidadeDemo = {
+  existe: false, nome: 'Família', compartilhando: true, convites: [],
+  // Cada pessoa cai no centroide de um arquetipo diferente, com um empurrao
+  // pequeno: sem ruido os pontos ficariam exatamente sobre as familias de
+  // fundo, e eu nao veria se a anticolisao de rotulos funciona.
+  membros() {
+    const ruido = (i, k) => ((Math.sin(i * 12.9898 + k * 78.233) * 43758.5453) % 1) * 0.18
+    return NOMES_DEMO.map((nome, i) => {
+      const a = archetypes[i % archetypes.length]
+      const vector = Object.fromEntries(Object.entries(a.centroid)
+        .map(([e, v], k) => [e, Math.max(-1, Math.min(1, v + ruido(i + 1, k + 1)))]))
+      return { user_id: `u${i}`, nome, sou_eu: i === 0, vector,
+               posicao: posicaoPolitica(vector), familia: a.name,
+               quando: new Date(Date.now() - i * 864e5).toISOString() }
+    })
+  },
+}
+
 // --- rotas -----------------------------------------------------------------
 
 const json = (res, corpo, status = 200) => {
@@ -166,7 +186,8 @@ const rotas = {
     const minutos = n => Math.max(2, Math.ceil((n * 13) / 60))
     json(res, { id: instrumento.id, label: instrumento.label,
       curta: { perguntas: curta, minutos: minutos(curta) },
-      completa: { perguntas: longa, minutos: minutos(longa) } })
+      completa: { perguntas: longa, minutos: minutos(longa) },
+      familias: archetypes.map(a => ({ id: a.id, name: a.name, color: a.color, centroid: a.centroid })) })
   },
 
   'session-answer': (body, _q, res) => {
@@ -241,6 +262,34 @@ const rotas = {
   },
 
   'admin-assinantes': (_body, _q, res) => json(res, { assinantes: [] }),
+
+  // Comunidade em memoria. Serve para ver o mapa cheio sem precisar de cinco
+  // contas reais — as pessoas de demonstracao vem de arquetipos diferentes,
+  // que e o caso que importa olhar.
+  comunidade: (body, q, res) => {
+    if (q.get('convite')) return json(res, { convite: {
+      comunidade: comunidadeDemo.nome, convidado_por: 'Ana', email: 'voce@exemplo.com' } })
+
+    if (body?.acao === 'criar') { comunidadeDemo.nome = body.nome; comunidadeDemo.existe = true; return json(res, { ok: true, id: 'demo' }) }
+    if (body?.acao === 'convidar') { comunidadeDemo.convites.push({ id: String(Date.now()), email: body.email, created_at: new Date().toISOString() }); return json(res, { ok: true, link: 'http://localhost:4173/comunidade?convite=demo', enviado: false }) }
+    if (body?.acao === 'cancelar_convite') { comunidadeDemo.convites = comunidadeDemo.convites.filter(c => c.id !== body.id); return json(res, { ok: true }) }
+    if (body?.acao === 'compartilhar') { comunidadeDemo.compartilhando = Boolean(body.compartilhando); return json(res, { ok: true }) }
+    if (body?.acao === 'sair') { comunidadeDemo.existe = false; return json(res, { ok: true }) }
+    if (body?.acao === 'aceitar') { comunidadeDemo.existe = true; return json(res, { ok: true, id: 'demo' }) }
+    if (body?.acao === 'recusar') return json(res, { ok: true })
+
+    if (!comunidadeDemo.existe) return json(res, { comunidades: [], convites_recebidos: [], email_ativo: false })
+
+    return json(res, {
+      comunidades: [{
+        id: 'demo', nome: comunidadeDemo.nome, criada_em: new Date().toISOString(),
+        sou_dono: true, compartilhando: comunidadeDemo.compartilhando,
+        membros: comunidadeDemo.membros(), total_membros: comunidadeDemo.membros().length,
+        convites: comunidadeDemo.convites,
+      }],
+      convites_recebidos: [], email_ativo: false,
+    })
+  },
 
   // No modo demo o admin nao autentica: nao existe Supabase Auth aqui. Em
   // producao cada Function confere o token contra ADMIN_EMAILS.

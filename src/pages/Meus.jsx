@@ -50,6 +50,11 @@ export default function Conta() {
               r="conta criada em" pequeno />
       </div>
 
+      <Bloco titulo="Comunidade"
+             sub="Um mapa com a sua gente: você convida, cada pessoa aceita, e o grupo inteiro aparece no mesmo gráfico, com nome.">
+        <Link to="/comunidade" className="botao-forte inline-flex">Abrir minha comunidade</Link>
+      </Bloco>
+
       <Bloco titulo="Como sua posição mudou"
              sub="Cada ponto é um questionário que você respondeu. A linha só faz sentido com mais de um.">
         <Evolucao resultados={lista ?? []} />

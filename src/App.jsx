@@ -4,6 +4,7 @@ import Quiz from './pages/Quiz.jsx'
 import Resultado from './pages/Resultado.jsx'
 import Entrar from './pages/Entrar.jsx'
 import Meus from './pages/Meus.jsx'
+import Comunidade from './pages/Comunidade.jsx'
 import { useAuth } from './lib/useAuth.js'
 import AdminLayout from './pages/admin/AdminLayout.jsx'
 import Perguntas from './pages/admin/Perguntas.jsx'
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="/resultado" element={<Resultado />} />
         <Route path="/entrar" element={<Entrar />} />
         <Route path="/conta" element={<Meus />} />
+        <Route path="/comunidade" element={<Comunidade />} />
         <Route path="/meus" element={<Navigate to="/conta" replace />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="perguntas" replace />} />
