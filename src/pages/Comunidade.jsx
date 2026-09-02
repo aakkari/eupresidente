@@ -77,7 +77,9 @@ export default function Comunidade() {
       {dados === null && <p className="text-grafia">Carregando...</p>}
 
       {dados && !comunidades.length && !convite && (
-        <Primeira token={token} aoCriar={(id) => { setSelecionada(id); recarregar() }} />
+        dados.pode_criar
+          ? <Primeira token={token} aoCriar={(id) => { setSelecionada(id); recarregar() }} />
+          : <Bloqueada plano={dados.plano} />
       )}
 
       {comunidades.length > 0 && (
@@ -97,14 +99,16 @@ export default function Comunidade() {
           {atual && <Painel comunidade={atual} token={token} aoMudar={recarregar}
                             emailAtivo={dados.email_ativo} />}
 
-          <details className="mt-12">
-            <summary className="cursor-pointer text-sm text-grafia hover:text-tinta">
-              Criar outra comunidade
-            </summary>
-            <div className="mt-4">
-              <FormCriar token={token} aoCriar={(id) => { setSelecionada(id); recarregar() }} />
-            </div>
-          </details>
+          {dados.pode_criar && (
+            <details className="mt-12">
+              <summary className="cursor-pointer text-sm text-grafia hover:text-tinta">
+                Criar outra comunidade
+              </summary>
+              <div className="mt-4">
+                <FormCriar token={token} aoCriar={(id) => { setSelecionada(id); recarregar() }} />
+              </div>
+            </details>
+          )}
         </>
       )}
     </div>
@@ -386,6 +390,53 @@ function Sair({ comunidade, token, aoMudar }) {
         </button>
         <button onClick={() => setConfirmando(false)} className="botao-leve text-xs">Ficar</button>
       </div>
+    </div>
+  )
+}
+
+// A trava aparece so para quem nao pode criar. Quem foi convidado continua
+// entrando de graca e vendo o mapa inteiro — o que faz a pessoa querer a
+// propria comunidade e ver a dos outros funcionando, nao ler sobre ela.
+function Bloqueada({ plano }) {
+  const preco = plano?.preco_centavos != null
+    ? (plano.preco_centavos / 100).toLocaleString('pt-BR',
+        { style: 'currency', currency: plano.moeda || 'BRL' })
+    : null
+
+  return (
+    <div className="cartao p-7">
+      <p className="rotulo">Faz parte da assinatura</p>
+      <h2 className="subtitulo mt-2 text-2xl text-balance">
+        Criar a sua comunidade é parte do plano anual.
+      </h2>
+      <p className="mt-3 max-w-xl text-sm leading-relaxed text-grafia">
+        Você dá o nome, convida quem quiser, e todo mundo que aceitar aparece num mapa
+        com nome — a família, o escritório, a turma. <strong className="text-tinta">Quem
+        você convida entra de graça</strong> e vê o mapa inteiro: só criar é que faz parte
+        do plano.
+      </p>
+
+      <ul className="mt-5 space-y-2 text-sm text-grafia">
+        {['Comunidades sem limite de pessoas, até 200 em cada',
+          'Convite por e-mail ou link, com aceite explícito de cada pessoa',
+          'Mapa que acompanha: quem responder de novo muda de lugar sozinho',
+          'Quem entra pode sair, ou ficar sem aparecer no mapa, quando quiser',
+        ].map(t => (
+          <li key={t} className="flex gap-2.5">
+            <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-tinta" />{t}
+          </li>
+        ))}
+      </ul>
+
+      <Link to="/conta#assinatura" className="botao-forte mt-6 inline-flex">
+        {preco ? `Liberar por ${preco} ao ${plano.ciclo === 'mensal' ? 'mês' : 'ano'}` : 'Ver a assinatura'}
+      </Link>
+
+      {!plano?.a_venda && (
+        <p className="mt-3 text-xs text-tenue">
+          A assinatura ainda não abriu. Quando abrir, é por aqui.
+        </p>
+      )}
     </div>
   )
 }

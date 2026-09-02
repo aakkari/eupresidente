@@ -1,6 +1,6 @@
 import { exigirAdmin } from './_lib/auth.js'
 import { json, erro, corpo, protegido } from './_lib/http.js'
-import { BLOCOS, configuracao, PADRAO_TRAVAS } from './_lib/plano.js'
+import { BLOCOS, RECURSOS, configuracao, PADRAO_RECURSOS, PADRAO_TRAVAS } from './_lib/plano.js'
 import { disponiveis, GATEWAYS } from './_lib/gateway.js'
 
 // Preco e fronteira do que e pago. Os dois moram no banco e nao no codigo:
@@ -14,12 +14,14 @@ export default protegido(async (req) => {
   const sb = auth.sb
 
   if (req.method === 'GET') {
-    const [assinatura, travas] = await Promise.all([
+    const [assinatura, travas, recursos] = await Promise.all([
       configuracao(sb, 'assinatura'),
       configuracao(sb, 'travas', PADRAO_TRAVAS),
+      configuracao(sb, 'recursos', PADRAO_RECURSOS),
     ])
     return json({
-      assinatura, travas,
+      assinatura, travas, recursos,
+      recursos_disponiveis: RECURSOS,
       // A tela precisa dos rotulos e das promessas para nao repetir texto que
       // ja existe no servidor e sair do ar quando um mudar.
       blocos: BLOCOS.map(({ id, rotulo, promessa }) => ({ id, rotulo, promessa })),
@@ -53,6 +55,15 @@ export default protegido(async (req) => {
           descricao: String(a.descricao ?? '').slice(0, 240),
         },
       })
+    }
+
+    if (body.recursos) {
+      const value = {}
+      for (const r of RECURSOS) {
+        const nivel = body.recursos[r.id]
+        value[r.id] = NIVEIS.includes(nivel) ? nivel : PADRAO_RECURSOS[r.id]
+      }
+      gravar.push({ key: 'recursos', value, updated_at: agora, updated_by: auth.user.id })
     }
 
     if (body.travas) {

@@ -97,3 +97,53 @@ export default function ArteHome() {
     </div>
   )
 }
+
+// O mapa da comunidade na home. Mesma chave grafica do resto, mas aqui os
+// nomes existem — e o nome e o argumento. Um mapa de pontos anonimos nao
+// explica por que alguem convidaria a familia.
+//
+// Nomes proprios genericos de proposito: se fosse "Papai" e "Vovo" ficaria
+// fofo e falso, e se fosse gente real seria pior.
+export function MapaExemplo({ className = '' }) {
+  const pessoas = [
+    { nome: 'Marina', x: 24, y: 68, eu: true },
+    { nome: 'Ana',    x: 17, y: 30 },
+    { nome: 'Beto',   x: 46, y: 52 },
+    { nome: 'Carla',  x: 79, y: 27 },
+    { nome: 'Dedé',   x: 62, y: 41 },
+    { nome: 'Eva',    x: 71, y: 74 },
+    { nome: 'Gil',    x: 52, y: 19 },
+  ]
+  return (
+    <svg viewBox="0 0 100 78" className={`w-full ${className}`} role="img"
+         aria-label="Exemplo de mapa de comunidade com sete pessoas">
+      <line x1="50" y1="4" x2="50" y2="74" stroke="#e4e4e4" strokeWidth="0.4" />
+      <line x1="4" y1="39" x2="96" y2="39" stroke="#e4e4e4" strokeWidth="0.4" />
+      {[25, 75].map(v => (
+        <line key={v} x1={v} y1="4" x2={v} y2="74" stroke="#f2f2f2" strokeWidth="0.35" />
+      ))}
+      {[19.5, 58.5].map(v => (
+        <line key={v} x1="4" y1={v} x2="96" y2={v} stroke="#f2f2f2" strokeWidth="0.35" />
+      ))}
+
+      {pessoas.map(p => (
+        <g key={p.nome}>
+          {p.eu && <circle cx={p.x} cy={p.y} r="4.6" fill="none" stroke="#0a0a0b"
+                           strokeWidth="0.5" opacity="0.3" />}
+          <circle cx={p.x} cy={p.y} r="2.1" fill={p.eu ? '#0a0a0b' : '#fff'}
+                  stroke="#0a0a0b" strokeWidth="0.8" />
+          {/* Nome a esquerda na metade direita, senao vaza da caixa. */}
+          <text x={p.x + (p.x > 62 ? -3.4 : 3.4)} y={p.y + 1.2}
+                textAnchor={p.x > 62 ? 'end' : 'start'}
+                fontSize="3.6" fontWeight={p.eu ? 700 : 500} fill="#0a0a0b">
+            {p.nome}
+          </text>
+        </g>
+      ))}
+
+      <text x="4" y="77" fontSize="3" fill="#8a8a8f">Estado</text>
+      <text x="96" y="77" fontSize="3" fill="#8a8a8f" textAnchor="end">mercado</text>
+      <text x="4" y="7" fontSize="3" fill="#8a8a8f">ordem</text>
+    </svg>
+  )
+}

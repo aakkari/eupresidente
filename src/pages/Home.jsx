@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { resumoInstrumento } from '../lib/api.js'
-import { MapaArte, ReguaArte, EixosArte } from '../components/ArteHome.jsx'
+import { MapaArte, ReguaArte, EixosArte, MapaExemplo } from '../components/ArteHome.jsx'
 
 export default function Home() {
   const ir = useNavigate()
@@ -111,6 +111,54 @@ export default function Home() {
             <Numero n="15" r="famílias políticas de referência" />
             <Numero n="±3" r="pontos de margem de erro" />
           </dl>
+        </div>
+      </section>
+
+      {/* Comunidade. Vem antes da secao de privacidade de proposito: e a
+          promessa mais forte da home, e a duvida que ela levanta — "vao ver
+          como eu penso?" — e respondida na secao logo abaixo. */}
+      <section className="border-t border-borda bg-white">
+        <div className="mx-auto max-w-6xl px-6 py-16">
+          <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
+            <div>
+              <p className="rotulo">Comunidade</p>
+              <h2 className="subtitulo mt-3 text-balance text-3xl sm:text-4xl">
+                Veja como a sua gente pensa, num mapa só.
+              </h2>
+              <p className="mt-4 max-w-xl leading-relaxed text-grafia">
+                A família, o escritório, a turma da facul. Você convida, cada pessoa
+                responde a sua, e todo mundo aparece no mesmo gráfico — com nome. Não é
+                enquete de grupo de WhatsApp: é a posição de cada um, medida do mesmo
+                jeito, lado a lado.
+              </p>
+
+              {/* O diferencial e o consentimento, e ele e dito como diferencial e
+                  nao como letra miuda. */}
+              <div className="mt-6 space-y-3">
+                {[
+                  ['Ninguém entra sem dizer sim', 'O convite explica, antes de qualquer botão, que aceitar coloca sua posição no mapa com o seu nome. Sem aceite, sem ponto.'],
+                  ['Dá para sair do mapa e continuar no grupo', 'Você pode estar na comunidade sem aparecer, e voltar atrás quando quiser. É um botão, não um e-mail para o suporte.'],
+                  ['Recusar não vira constrangimento', 'Se você não aceitar, quem convidou não é avisado. O convite só deixa de existir.'],
+                ].map(([t, d]) => (
+                  <div key={t} className="border-l-2 border-tinta pl-4">
+                    <p className="text-sm font-semibold">{t}</p>
+                    <p className="mt-0.5 text-sm leading-relaxed text-grafia">{d}</p>
+                  </div>
+                ))}
+              </div>
+
+              <Link to="/comunidade" className="botao-forte mt-7 inline-flex">
+                Ver como funciona
+              </Link>
+            </div>
+
+            <div className="cartao overflow-hidden p-5">
+              <MapaExemplo />
+              <p className="mt-3 text-xs leading-relaxed text-tenue">
+                Exemplo. No seu, os nomes são os das pessoas que aceitaram o seu convite.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 

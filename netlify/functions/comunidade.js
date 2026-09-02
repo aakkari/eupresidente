@@ -3,6 +3,7 @@ import { exigirUsuario } from './_lib/auth.js'
 import { json, erro, corpo, protegido, rateLimit } from './_lib/http.js'
 import { posicaoPolitica } from './_lib/scoring.js'
 import { enviarConvite, podeEnviar } from './_lib/email.js'
+import { configuracao, nivelDoUsuario, podeUsar, PADRAO_ASSINATURA, PADRAO_RECURSOS } from './_lib/plano.js'
 
 // Comunidades: criar, convidar por email, aceitar e ver o mapa.
 //
@@ -50,6 +51,16 @@ export default protegido(async (req) => {
 // ------------------------------------------------------------------- leitura
 
 async function minhasComunidades(sb, uid, email) {
+  // Criar e recurso pago; participar de uma comunidade a convite nao e. Quem
+  // nao pode criar continua entrando, vendo o mapa e convidando gente para a
+  // comunidade em que ja esta.
+  const [recursos, nivel, plano] = await Promise.all([
+    configuracao(sb, 'recursos', PADRAO_RECURSOS),
+    nivelDoUsuario(sb, uid),
+    configuracao(sb, 'assinatura', PADRAO_ASSINATURA),
+  ])
+  const podeCriar = podeUsar('criar_comunidade', recursos, nivel)
+
   const { data: minhas } = await sb.from('group_members')
     .select('group_id, shared, joined_at').eq('user_id', uid)
 
@@ -109,6 +120,12 @@ async function minhasComunidades(sb, uid, email) {
     })),
 
     email_ativo: podeEnviar(),
+    nivel,
+    pode_criar: podeCriar,
+    plano: podeCriar ? null : {
+      preco_centavos: plano.preco_centavos, moeda: plano.moeda, ciclo: plano.ciclo,
+      titulo: plano.titulo, a_venda: Boolean(plano.ativa),
+    },
   })
 }
 
@@ -241,6 +258,15 @@ async function previaDoConvite(token) {
 async function criar({ sb, uid, body }) {
   const nome = String(body.nome ?? '').trim().slice(0, 60)
   if (!nome) return erro('a comunidade precisa de um nome')
+
+  // A trava e do servidor tambem aqui: esconder o formulario no front nao
+  // impede ninguem de chamar a Function direto.
+  const [recursos, nivel] = await Promise.all([
+    configuracao(sb, 'recursos', PADRAO_RECURSOS),
+    nivelDoUsuario(sb, uid),
+  ])
+  if (!podeUsar('criar_comunidade', recursos, nivel))
+    return erro('criar comunidade faz parte da assinatura', 402)
 
   const { data: grupo, error } = await sb.from('groups').insert({
     name: nome, owner_id: uid, invite_code: crypto.randomUUID(),

@@ -89,3 +89,25 @@ export const previaConvite = (convite) =>
 
 export const acaoComunidade = (token, corpo) =>
   chamar('comunidade', { metodo: 'POST', corpo, token })
+
+export const adminPessoas = (token, pessoa) =>
+  chamar(`admin-pessoas${pessoa ? `?pessoa=${encodeURIComponent(pessoa)}` : ''}`, { token })
+
+export const adminPopulacao = (token) => chamar('admin-populacao', { token })
+
+export const adminContato = (token, status) =>
+  chamar(`admin-contato${status ? `?status=${encodeURIComponent(status)}` : ''}`, { token })
+
+export const adminMarcarContato = (token, id, status) =>
+  chamar('admin-contato', { metodo: 'PATCH', corpo: { id, status }, token })
+
+export const enviarContato = (corpo, login) =>
+  chamar('contato', { metodo: 'POST', corpo, token: login })
+
+export const adminComunidades = (token) => chamar('admin-comunidades', { token })
+
+export const adminPerfis = (token, instrumento) =>
+  chamar(`admin-perfis${instrumento ? `?instrument=${encodeURIComponent(instrumento)}` : ''}`, { token })
+
+export const adminSalvarPerfil = (token, corpo) =>
+  chamar('admin-perfis', { metodo: 'PATCH', corpo, token })

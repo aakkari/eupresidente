@@ -20,16 +20,18 @@ export default function Plano() {
   if (erro) return <p className="text-sm text-red-700">{erro}</p>
   if (!cfg) return <p className="text-grafia">Carregando...</p>
 
-  const { assinatura, travas, blocos, niveis, gateways, gateways_disponiveis } = cfg
+  const { assinatura, travas, blocos, niveis, gateways, gateways_disponiveis,
+          recursos, recursos_disponiveis } = cfg
   const set = (k) => (v) => setCfg(c => ({ ...c, assinatura: { ...c.assinatura, [k]: v } }))
   const setTrava = (id, nivel) => setCfg(c => ({ ...c, travas: { ...c.travas, [id]: nivel } }))
+  const setRecurso = (id, nivel) => setCfg(c => ({ ...c, recursos: { ...c.recursos, [id]: nivel } }))
 
   const reais = (assinatura.preco_centavos / 100).toFixed(2).replace('.', ',')
 
   async function salvar() {
     setEstado('salvando'); setErro(null)
     try {
-      await adminSalvarConfig(token, { assinatura, travas })
+      await adminSalvarConfig(token, { assinatura, travas, recursos })
       setEstado('salvo'); setTimeout(() => setEstado(null), 2500)
     } catch (e) { setEstado(null); setErro(e.message) }
   }
@@ -111,6 +113,38 @@ export default function Plano() {
               )}
             </span>
           </label>
+        </div>
+      </section>
+
+      <section>
+        <h2 className="subtitulo text-2xl">Quem pode usar cada recurso</h2>
+        <p className="mb-4 mt-1.5 max-w-2xl text-sm leading-relaxed text-grafia">
+          Criar comunidade é pago; <strong className="text-tinta">entrar numa comunidade a
+          convite é sempre de graça</strong>, em qualquer configuração. Se aceitar convite
+          também custasse, o convite morreria na caixa de entrada — e é justamente o amigo
+          que entra sem pagar, vê o mapa e quer o próprio que compra a anuidade seguinte.
+        </p>
+
+        <div className="cartao divide-y divide-borda">
+          {(recursos_disponiveis ?? []).map(r => (
+            <div key={r.id} className="flex flex-wrap items-center gap-3 p-4">
+              <div className="min-w-0 flex-1">
+                <div className="font-medium">{r.rotulo}</div>
+                <div className="text-xs text-grafia">{r.promessa}</div>
+              </div>
+              <div className="flex shrink-0 gap-1">
+                {niveis.map(n => (
+                  <button key={n} onClick={() => setRecurso(r.id, n)}
+                    className={`rounded px-2.5 py-1 text-xs transition ${
+                      recursos?.[r.id] === n
+                        ? 'bg-tinta text-papel'
+                        : 'border border-borda text-grafia hover:border-tinta hover:text-tinta'}`}>
+                    {NOMES[n]}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 

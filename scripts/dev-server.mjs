@@ -10,7 +10,7 @@ import { readFileSync, existsSync } from 'node:fs'
 import { extname, join } from 'node:path'
 import { randomUUID } from 'node:crypto'
 import { scoreSession, posicaoPolitica } from '../netlify/functions/_lib/scoring.js'
-import { aplicarTravas, BLOCOS, PADRAO_TRAVAS } from '../netlify/functions/_lib/plano.js'
+import { aplicarTravas, podeUsar, BLOCOS, RECURSOS, PADRAO_RECURSOS, PADRAO_TRAVAS } from '../netlify/functions/_lib/plano.js'
 
 // --- leitura do seed -------------------------------------------------------
 
@@ -139,6 +139,7 @@ const config = {
   // TRAVAS_JSON permite ver a variante paga sem banco: por exemplo
   // TRAVAS_JSON='{"paises":"assinante"}' com NIVEL_DEMO=cadastrado.
   travas: { ...PADRAO_TRAVAS, ...(process.env.TRAVAS_JSON ? JSON.parse(process.env.TRAVAS_JSON) : {}) },
+  recursos: { ...PADRAO_RECURSOS, ...(process.env.RECURSOS_JSON ? JSON.parse(process.env.RECURSOS_JSON) : {}) },
 }
 const resumir = (a) => a && ({ id: a.id, name: a.name, color: a.color, centroid: a.centroid })
 
@@ -253,8 +254,10 @@ const rotas = {
   'admin-config': (body, _q, res) => {
     if (body?.assinatura) config.assinatura = { ...config.assinatura, ...body.assinatura }
     if (body?.travas) config.travas = { ...config.travas, ...body.travas }
+    if (body?.recursos) config.recursos = { ...config.recursos, ...body.recursos }
     json(res, {
       assinatura: config.assinatura, travas: config.travas,
+      recursos: config.recursos, recursos_disponiveis: RECURSOS,
       blocos: BLOCOS.map(({ id, rotulo, promessa }) => ({ id, rotulo, promessa })),
       niveis: ['todos', 'cadastrado', 'assinante'],
       gateways: ['manual', 'stripe', 'mercadopago'], gateways_disponiveis: ['manual'],
@@ -262,6 +265,150 @@ const rotas = {
   },
 
   'admin-assinantes': (_body, _q, res) => json(res, { assinantes: [] }),
+
+  'admin-pessoas': (_body, q, res) => {
+    const pessoas = comunidadeDemo.membros().map((m, i) => ({
+      id: m.user_id, email: `${m.nome.split(' ')[0].toLowerCase()}@exemplo.com`,
+      criada_em: m.quando, ultimo_acesso: m.quando, confirmada: i !== 3,
+      nome: m.nome, uf: ['SP','RJ','MG','BA','RS','PE','SP','PR','SC'][i] ?? null,
+      cidade: ['São Paulo','Rio','BH','Salvador','Porto Alegre','Recife','Campinas','Curitiba','Joinville'][i] ?? null,
+      escolaridade: ['Superior','Médio','Pós-graduação','Superior','Médio','Superior','Pós-graduação','Superior','Médio'][i],
+      ocupacao: ['professora','autônomo','médica','aposentado','estudante','advogado','engenheira','vendedor','enfermeira'][i],
+      nascimento: 1960 + i * 4,
+      questionarios: (i % 3) + 1, posicao: m.posicao?.posicao ?? null,
+      rotulo: m.posicao?.rotulo ?? null, familia: m.familia,
+      assinante: i < 2, pago_centavos: i < 2 ? 4990 : 0,
+      mensagens: i === 1 ? 2 : 0, mensagens_abertas: i === 1 ? 1 : 0,
+      comunidades: i < 4 ? 1 : 0,
+    }))
+    if (!q.get('pessoa')) return json(res, { pessoas })
+    const p = pessoas.find(x => x.id === q.get('pessoa')) ?? pessoas[0]
+    const m = comunidadeDemo.membros().find(x => x.user_id === p.id) ?? comunidadeDemo.membros()[0]
+    json(res, {
+      pessoa: { id: p.id, email: p.email, criada_em: p.criada_em, ultimo_acesso: p.ultimo_acesso,
+        confirmada: p.confirmada,
+        perfil: { full_name: p.nome, display_name: p.nome.split(' ')[0], phone: '(11) 90000-0000',
+                  birth_year: p.nascimento, city: p.cidade, uf: p.uf,
+                  education: p.escolaridade, occupation: p.ocupacao },
+        assinatura: p.assinante
+          ? { status: 'ativa', gateway: 'manual', period_end: new Date(Date.now() + 3155e7).toISOString() }
+          : null,
+        pagamentos: p.assinante
+          ? [{ amount_cents: 4990, currency: 'BRL', status: 'pago', method: 'cortesia',
+               paid_at: p.criada_em, created_at: p.criada_em }] : [],
+        mensagens: p.mensagens
+          ? [{ id: 'm1', subject: 'Discordo do meu resultado', status: 'novo',
+               message: 'Achei que o eixo de costumes nao refletiu o que eu penso.',
+               created_at: p.criada_em }] : [],
+        comunidades: p.comunidades
+          ? [{ nome: comunidadeDemo.nome, dono: true, aparece_no_mapa: true, desde: p.criada_em }] : [],
+      },
+      questionarios: [{
+        token: 'demo', mode: 'short', status: 'completed',
+        iniciado: p.criada_em, terminado: p.criada_em, respondidas: 16, duracao_s: 214,
+        posicao: m.posicao, familia: m.familia, vector: m.vector,
+        confidence: Object.fromEntries(Object.keys(m.vector).map(e => [e, 0.7])),
+        neutral_rate: 0.12, tensions: [], quality_flags: [], research_eligible: true,
+      }],
+    })
+  },
+
+  'admin-populacao': (_body, _q, res) => {
+    const membros = comunidadeDemo.membros()
+    const escala = Array.from({ length: 10 }, (_, i) => ({ de: i * 10 + 1, ate: (i + 1) * 10, n: 0 }))
+    for (const m of membros) escala[Math.min(9, Math.floor((m.posicao.posicao - 1) / 10))].n++
+    const contar = (f) => {
+      const c = {}
+      for (const m of membros) c[f(m)] = (c[f(m)] ?? 0) + 1
+      return Object.entries(c).sort((a, b) => b[1] - a[1]).map(([nome, n]) => ({ nome, n }))
+    }
+    json(res, {
+      total: membros.length, escala,
+      por_rotulo: contar(m => m.posicao.rotulo), por_familia: contar(m => m.familia),
+      por_versao: [{ nome: 'rápida', n: membros.length }],
+      media_eixos: { ECO: -0.12, SOC: 0.08, AUT: -0.04, NAC: 0.11, DEM: -0.2, AMB: 0.3 },
+      recortes: {
+        uf: [{ nome: 'SP', n: 34, posicao_media: 52, economia_media: 55, costumes_media: 48, confiavel: true },
+             { nome: 'RJ', n: 12, posicao_media: 61, economia_media: 64, costumes_media: 57, confiavel: false }],
+        escolaridade: [{ nome: 'Superior', n: 31, posicao_media: 48, economia_media: 50, costumes_media: 45, confiavel: true }],
+        ocupacao: [{ nome: 'professora', n: 8, posicao_media: 29, economia_media: 25, costumes_media: 33, confiavel: false }],
+        faixa_etaria: [{ nome: '35-44', n: 30, posicao_media: 50, economia_media: 52, costumes_media: 47, confiavel: true },
+                       { nome: '60+', n: 9, posicao_media: 68, economia_media: 66, costumes_media: 71, confiavel: false }],
+      },
+      sem_perfil: 12, piso_confiavel: 30,
+      tempo: { sessoes_medidas: 41, concluidas: 39, duracao_mediana_s: 247,
+        perguntas_mais_lentas: questions.slice(0, 6).map((q, i) => ({
+          id: q.id, n: 20 - i * 2, mediana_s: Number((18 - i * 2.3).toFixed(1)) })) },
+    })
+  },
+
+  'admin-comunidades': (_body, _q, res) => {
+    const pessoas = comunidadeDemo.membros().map(m => ({
+      nome: m.nome, no_mapa: true, posicao: m.posicao.posicao, desde: m.quando }))
+    const pos = pessoas.map(p => p.posicao)
+    const media = pos.reduce((s, v) => s + v, 0) / pos.length
+    json(res, {
+      comunidades: [{
+        id: 'demo', nome: comunidadeDemo.nome, criada_em: new Date().toISOString(),
+        dono: pessoas[0].nome, membros: pessoas.length, no_mapa: pessoas.length,
+        convites_pendentes: comunidadeDemo.convites.length, convites_aceitos: 4, convites_recusados: 1,
+        com_resultado: pessoas.length, posicao_media: Math.round(media),
+        dispersao: Number(Math.sqrt(pos.reduce((s, v) => s + (v - media) ** 2, 0) / pos.length).toFixed(1)),
+        pessoas,
+      }],
+      totais: { comunidades: 1, pessoas: pessoas.length, media_por_comunidade: pessoas.length,
+                convites: 5 + comunidadeDemo.convites.length, taxa_aceite: 0.8 },
+    })
+  },
+
+  'admin-perfis': (body, _q, res) => {
+    if (body?.id) return json(res, { ok: true })
+    const EIXOS = ['ECO', 'SOC', 'AUT', 'NAC', 'DEM', 'AMB']
+    const dist = (a, b) => Math.sqrt(EIXOS.reduce((s, e) =>
+      s + ((a.centroid?.[e] ?? 0) - (b.centroid?.[e] ?? 0)) ** 2, 0))
+    const separa = (a, b) => EIXOS.map(e => ({ eixo: e,
+      delta: Number(Math.abs((a.centroid?.[e] ?? 0) - (b.centroid?.[e] ?? 0)).toFixed(2)) }))
+      .sort((x, y) => y.delta - x.delta)[0]
+    const pares = []
+    for (let i = 0; i < archetypes.length; i++)
+      for (let j = i + 1; j < archetypes.length; j++)
+        pares.push({ a: archetypes[i].name, b: archetypes[j].name,
+          d: Number(dist(archetypes[i], archetypes[j]).toFixed(3)),
+          separa: separa(archetypes[i], archetypes[j]) })
+    json(res, {
+      instrumentos: [instrumento], instrumento_id: instrumento.id, eixos: instrumento.axes,
+      pares_proximos: pares.sort((a, b) => a.d - b.d).slice(0, 8),
+      perfis: archetypes.map((a, i) => {
+        const define = EIXOS.map(e => ({ eixo: e, valor: Number(a.centroid?.[e] ?? 0) }))
+          .sort((x, y) => Math.abs(y.valor) - Math.abs(x.valor))
+        return { ...a, pessoas: (i * 3) % 7, como_segundo: (i * 2) % 5,
+          tecnico: {
+            define: define.filter(d => Math.abs(d.valor) >= 0.5),
+            indiferente: define.filter(d => Math.abs(d.valor) < 0.2).map(d => d.eixo),
+            vizinhos: archetypes.filter(o => o.id !== a.id)
+              .map(o => ({ id: o.id, nome: o.name, d: Number(dist(a, o).toFixed(3)), separa: separa(a, o) }))
+              .sort((x, y) => x.d - y.d).slice(0, 3),
+          },
+          falta: ['name','tagline','description','history','blind_spots','schools','curiosities',
+                  'figures','strengths','weaknesses','countries']
+            .filter(c => a[c] == null || a[c] === '' || (Array.isArray(a[c]) && !a[c].length)) }
+      }),
+    })
+  },
+
+  'admin-contato': (body, _q, res) => {
+    if (body?.status) return json(res, { ok: true })
+    json(res, { novas: 2, mensagens: [
+      { id: 'm1', name: 'Ana Prado', email: 'ana@exemplo.com', subject: 'Discordo do meu resultado',
+        message: 'Achei que o eixo de costumes não refletiu o que eu penso. Respondi que sou a favor\nda união estável e mesmo assim deu conservador.',
+        user_id: 'u1', status: 'novo', created_at: new Date().toISOString() },
+      { id: 'm2', name: 'Jornal X', email: 'redacao@exemplo.com', subject: 'Pauta',
+        message: 'Gostaríamos de falar sobre a metodologia para uma matéria.',
+        user_id: null, status: 'novo', created_at: new Date(Date.now() - 864e5).toISOString() },
+    ] })
+  },
+
+  contato: (_body, _q, res) => json(res, { ok: true }),
 
   // Comunidade em memoria. Serve para ver o mapa cheio sem precisar de cinco
   // contas reais — as pessoas de demonstracao vem de arquetipos diferentes,
@@ -278,7 +425,12 @@ const rotas = {
     if (body?.acao === 'aceitar') { comunidadeDemo.existe = true; return json(res, { ok: true, id: 'demo' }) }
     if (body?.acao === 'recusar') return json(res, { ok: true })
 
-    if (!comunidadeDemo.existe) return json(res, { comunidades: [], convites_recebidos: [], email_ativo: false })
+    const podeCriar = podeUsar('criar_comunidade', config.recursos, nivelDemo)
+    if (!comunidadeDemo.existe || !podeCriar) return json(res, {
+      comunidades: comunidadeDemo.existe && podeCriar ? [] : [],
+      convites_recebidos: [], email_ativo: false, nivel: nivelDemo, pode_criar: podeCriar,
+      plano: podeCriar ? null : { ...config.assinatura, a_venda: false },
+    })
 
     return json(res, {
       comunidades: [{
@@ -287,7 +439,8 @@ const rotas = {
         membros: comunidadeDemo.membros(), total_membros: comunidadeDemo.membros().length,
         convites: comunidadeDemo.convites,
       }],
-      convites_recebidos: [], email_ativo: false,
+      convites_recebidos: [], email_ativo: false, nivel: nivelDemo, pode_criar: podeCriar,
+      plano: podeCriar ? null : { ...config.assinatura, a_venda: false },
     })
   },
 

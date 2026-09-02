@@ -99,6 +99,31 @@ Recusa não é comunicada a quem convidou. O convite apenas deixa de estar
 pendente. Dizer "fulano recusou" transforma uma resposta privada em
 constrangimento social, e quem recusou não pediu para ter essa conversa.
 
+**13. Criar comunidade é pago; entrar a convite é sempre de graça.**
+A assimetria é o desenho, não um descuido. Se aceitar convite também custasse,
+o convite morreria na caixa de entrada — e é justamente o amigo que entra sem
+pagar, vê o mapa e quer o próprio que compra a anuidade seguinte. `podeUsar`
+em `_lib/plano.js` decide, lendo `app_settings.recursos`, e a checagem é
+refeita no servidor dentro da ação `criar`: esconder o formulário no front não
+impede ninguém de chamar a Function direto.
+
+**14. O centróide não se edita pela tela.**
+`/admin/perfis` deixa reescrever nome, chamada, descrição, história,
+curiosidades, figuras, forças, fraquezas, ponto cego e países — texto é texto,
+e corrigir uma curiosidade não muda o resultado de ninguém. O centróide é
+medida: mexer nele reclassifica em silêncio todo mundo que já respondeu,
+inclusive o report que a pessoa já mandou para os amigos. É a decisão 8 pela
+mesma razão, num objeto diferente. `admin-perfis` ignora `centroid`, `id` e
+`instrument_id` mesmo que venham no corpo.
+
+**15. Recorte de grupo sempre com o n do lado.**
+A célula mínima de 100 (decisão 7) vale para o que sai publicado. Dentro do
+admin, quem olha é o responsável pelos dados, e esconder o número atrapalharia
+mais do que protegeria — mas número sozinho mente. `/admin/populacao` marca
+todo recorte abaixo de 30 pessoas como amostra pequena, e diz quantos
+resultados não entram em recorte nenhum por falta de perfil preenchido: sem
+isso, um corte com quatro pessoas parece a população.
+
 ---
 
 ## Estrutura

@@ -39,6 +39,26 @@ const NIVEIS = { anonimo: 0, todos: 0, cadastrado: 1, assinante: 2 }
 
 export const PADRAO_TRAVAS = Object.fromEntries(BLOCOS.map(b => [b.id, 'cadastrado']))
 
+// Recursos que nao sao blocos do report, mas tambem tem dono. Mesma escada:
+// 'todos', 'cadastrado' ou 'assinante'.
+//
+// Criar comunidade e pago; entrar numa comunidade a convite e de graca, e essa
+// assimetria e proposital. Se aceitar convite tambem custasse, o convite
+// morreria na caixa de entrada — e e justamente o amigo que entra sem pagar,
+// ve o mapa e quer o proprio que compra a anuidade seguinte.
+export const RECURSOS = [
+  { id: 'criar_comunidade', rotulo: 'Criar comunidade',
+    promessa: 'Criar sua própria comunidade e convidar quem você quiser' },
+]
+
+export const PADRAO_RECURSOS = { criar_comunidade: 'assinante' }
+
+export function podeUsar(recurso, recursos, nivel) {
+  const NIVEIS = { anonimo: 0, todos: 0, cadastrado: 1, assinante: 2 }
+  const exigido = NIVEIS[recursos?.[recurso]] ?? NIVEIS[PADRAO_RECURSOS[recurso]] ?? 2
+  return (NIVEIS[nivel] ?? 0) >= exigido
+}
+
 // Espelha o seed da migration. Serve de rede: sem a linha no banco, a tela
 // mostra um plano desligado e coerente em vez de "R$ NaN por undefined".
 export const PADRAO_ASSINATURA = {

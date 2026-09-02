@@ -5,12 +5,18 @@ import Resultado from './pages/Resultado.jsx'
 import Entrar from './pages/Entrar.jsx'
 import Meus from './pages/Meus.jsx'
 import Comunidade from './pages/Comunidade.jsx'
+import Contato from './pages/Contato.jsx'
 import { useAuth } from './lib/useAuth.js'
 import AdminLayout from './pages/admin/AdminLayout.jsx'
 import Perguntas from './pages/admin/Perguntas.jsx'
 import Metricas from './pages/admin/Metricas.jsx'
 import Plano from './pages/admin/Plano.jsx'
 import Assinantes from './pages/admin/Assinantes.jsx'
+import Pessoas from './pages/admin/Pessoas.jsx'
+import Populacao from './pages/admin/Populacao.jsx'
+import Comunidades from './pages/admin/Comunidades.jsx'
+import Perfis from './pages/admin/Perfis.jsx'
+import AdminContato from './pages/admin/Contato.jsx'
 
 export default function App() {
   const { token } = useAuth()
@@ -38,15 +44,30 @@ export default function App() {
         <Route path="/entrar" element={<Entrar />} />
         <Route path="/conta" element={<Meus />} />
         <Route path="/comunidade" element={<Comunidade />} />
+        <Route path="/contato" element={<Contato />} />
         <Route path="/meus" element={<Navigate to="/conta" replace />} />
         <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<Navigate to="perguntas" replace />} />
+          <Route index element={<Navigate to="pessoas" replace />} />
           <Route path="perguntas" element={<Perguntas />} />
           <Route path="metricas" element={<Metricas />} />
           <Route path="plano" element={<Plano />} />
           <Route path="assinantes" element={<Assinantes />} />
+          <Route path="pessoas" element={<Pessoas />} />
+          <Route path="populacao" element={<Populacao />} />
+          <Route path="comunidades" element={<Comunidades />} />
+          <Route path="perfis" element={<Perfis />} />
+          <Route path="contato" element={<AdminContato />} />
         </Route>
       </Routes>
+
+      <footer className="border-t border-borda">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-5 gap-y-2 px-6 py-8 text-xs text-grafia">
+          <span className="font-medium text-tinta">Eu Presidente</span>
+          <Link to="/contato" className="hover:text-tinta">Fale comigo</Link>
+          <Link to="/comunidade" className="hover:text-tinta">Comunidade</Link>
+          <span className="ml-auto">Opinião política é dado sensível. Tratamos como tal.</span>
+        </div>
+      </footer>
     </div>
   )
 }
