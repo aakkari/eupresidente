@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { buscarResultado } from '../lib/api.js'
 import ReguaPolitica from '../components/ReguaPolitica.jsx'
@@ -11,6 +11,7 @@ import { useAuth } from '../lib/useAuth.js'
 import { vincularSessao } from '../lib/api.js'
 import { Link } from 'react-router-dom'
 import { tinta } from '../lib/cor.js'
+import { lerPendente, limparPendente } from '../lib/oauth.js'
 
 const EIXOS = ['ECO', 'SOC', 'AUT', 'NAC', 'DEM', 'AMB']
 
@@ -29,6 +30,21 @@ export default function Resultado() {
     // que ver o report reabrir no nivel novo, sem recarregar a pagina.
     buscarResultado(token, login).then(setDados).catch(e => setErro(e.message))
   }, [token, login])
+
+  // Volta do Google. A pessoa saiu do site no meio de um passo que ela ja
+  // tinha comandado — pedir de novo, agora como "guardar na minha conta",
+  // seria cobrar duas vezes pela mesma decisao.
+  const vinculando = useRef(false)
+  useEffect(() => {
+    if (!login || !dados?.orfa || guardado || vinculando.current) return
+    if (lerPendente() !== token) return
+    // Uma vez so: o efeito reroda quando dados muda, e a segunda chamada
+    // levaria um 409 do claim_session para o log sem servir para nada.
+    vinculando.current = true
+    vincularSessao(login, token)
+      .then(() => { limparPendente(); setGuardado(true) })
+      .catch(() => limparPendente())
+  }, [login, dados, token, guardado])
 
   if (erro) return <Aviso>{erro}</Aviso>
   if (!dados) return <Aviso>Carregando...</Aviso>

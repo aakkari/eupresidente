@@ -39,7 +39,9 @@ export default protegido(async (req) => {
   if (!perfil) {
     await sb.from('profiles').insert({
       user_id: auth.user.id,
-      display_name: body.display_name?.slice(0, 60) || auth.user.email?.split('@')[0] || null,
+      display_name: body.display_name?.slice(0, 60)
+        || auth.user.user_metadata?.full_name || auth.user.user_metadata?.name
+        || auth.user.email?.split('@')[0] || null,
     })
   } else if (!perfil.display_name && body.display_name) {
     await sb.from('profiles')

@@ -89,7 +89,11 @@ export default protegido(async (req) => {
         .select('user_id').eq('user_id', sessao.user_id).maybeSingle()
       if (!perfil) {
         const { data: dono } = await sb.auth.admin.getUserById(sessao.user_id)
-        const nome = dono?.user?.user_metadata?.display_name
+        const m = dono?.user?.user_metadata ?? {}
+        // full_name/name e o que o Google manda; display_name e o que o
+        // cadastro por e-mail grava. Sem os dois primeiros, quem entra pelo
+        // Google apareceria no mapa da comunidade como o pedaco do e-mail.
+        const nome = m.display_name || m.full_name || m.name
           || dono?.user?.email?.split('@')[0] || null
         await sb.from('profiles')
           .insert({ user_id: sessao.user_id, display_name: nome?.slice(0, 60) ?? null })

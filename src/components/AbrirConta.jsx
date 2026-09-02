@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import BotaoGoogle from './BotaoGoogle.jsx'
 
 // Conta criada na tela final do questionario, e nao na primeira pergunta.
 //
@@ -7,7 +8,7 @@ import { useState } from 'react'
 // hesita em se identificar. Aqui e o contrario — ela ja gastou doze minutos,
 // o resultado esta pronto do outro lado do botao, e a conta virou o caminho
 // mais curto ate ele em vez de um obstaculo no caminho.
-export default function AbrirConta({ enviando, erro, onEnviar }) {
+export default function AbrirConta({ enviando, erro, onEnviar, googleVoltaPara, googleAntes }) {
   const [modo, setModo] = useState('criar')
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
@@ -36,12 +37,20 @@ export default function AbrirConta({ enviando, erro, onEnviar }) {
           : 'Entre e o resultado abre na sua conta.'}
       </p>
 
+      {/* Primeiro o Google, depois o formulario. Um toque contra tres campos:
+          quem tem conta Google nunca deveria ver os tres. */}
       {criar && (
-        <input className="campo mt-4" placeholder="nome completo" value={nome} required
+        <div className="mt-4">
+          <BotaoGoogle voltarPara={googleVoltaPara} aoIr={googleAntes} desabilitado={enviando} />
+        </div>
+      )}
+
+      {criar && (
+        <input className={`campo ${criar ? '' : 'mt-4'}`} placeholder="nome completo" value={nome} required
                minLength={2} maxLength={60} autoComplete="name"
                onChange={e => setNome(e.target.value)} />
       )}
-      <input className={`campo ${criar ? 'mt-2' : 'mt-4'}`} type="email" placeholder="seu e-mail"
+      <input className="campo mt-2" type="email" placeholder="seu e-mail"
              value={email} required autoComplete="email"
              onChange={e => setEmail(e.target.value)} />
       <input className="campo mt-2" type="password" value={senha} required minLength={6}

@@ -3,6 +3,7 @@ import AbrirConta from '../components/AbrirConta.jsx'
 import { useAuth } from '../lib/useAuth.js'
 import { getSupabase, temSupabase } from '../lib/supabase.js'
 import { emPortugues } from '../lib/erroAuth.js'
+import { marcarPendente } from '../lib/oauth.js'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { iniciarSessao, salvarRespostas, finalizarSessao, vincularSessao } from '../lib/api.js'
 
@@ -224,7 +225,15 @@ export default function Quiz() {
           </button>
         </>
       ) : (
-        <AbrirConta enviando={enviando} erro={erro} onEnviar={concluir} />
+        <AbrirConta enviando={enviando} erro={erro} onEnviar={concluir}
+                    googleVoltaPara={`/resultado?token=${sessao.token}`}
+                    googleAntes={async () => {
+                      // Sair para o Google descarta esta pagina. O que nao for
+                      // gravado agora nao existe na volta.
+                      await fechar()
+                      marcarPendente(sessao.token)
+                      limparRascunho()
+                    }} />
       )}
 
       {/* O convite saiu daqui. Nesta tela ele competia com o unico passo que

@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { getSupabase, temSupabase } from '../lib/supabase.js'
 import { vincularSessao } from '../lib/api.js'
+import { marcarPendente } from '../lib/oauth.js'
 import { emPortugues } from '../lib/erroAuth.js'
+import BotaoGoogle from '../components/BotaoGoogle.jsx'
 
 export default function Entrar() {
   const [params] = useSearchParams()
@@ -55,7 +57,13 @@ export default function Entrar() {
           : 'Guarde seus resultados, compare com amigos e acompanhe como sua posição muda ao longo do tempo.'}
       </p>
 
-      <input className="campo mt-6" type="email" placeholder="seu email" value={email}
+      <div className="mt-6">
+        <BotaoGoogle voltarPara={voltarPara ? `/resultado?token=${voltarPara}` : (destino ?? '/conta')}
+                     aoIr={voltarPara ? async () => marcarPendente(voltarPara) : undefined}
+                     desabilitado={indo} />
+      </div>
+
+      <input className="campo" type="email" placeholder="seu email" value={email}
              onChange={e => setEmail(e.target.value)} required autoComplete="email" />
       <input className="campo mt-2" type="password" placeholder="senha" value={senha}
              onChange={e => setSenha(e.target.value)} required minLength={6}
