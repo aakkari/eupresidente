@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
-import { useAuth } from '../lib/useAuth.js'
+import { useAuth, esquecerNome } from '../lib/useAuth.js'
 import {
   meusResultados, meuPerfil, salvarPerfil, apagarResultado,
   minhaAssinatura, assinar, cancelarAssinatura,
@@ -312,6 +312,8 @@ function FormPerfil({ token, perfil, aoSalvar }) {
     try {
       await salvarPerfil(token, campos)
       aoSalvar(p => ({ ...p, ...campos }))
+      // Sem isto o cabecalho fica com o nome antigo ate recarregar a pagina.
+      esquecerNome()
       setEstado('salvo'); setTimeout(() => setEstado(null), 2500)
     } catch (e2) { setEstado(null); setErro(e2.message) }
   }

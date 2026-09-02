@@ -98,52 +98,131 @@ export default function ArteHome() {
   )
 }
 
-// O mapa da comunidade na home. Mesma chave grafica do resto, mas aqui os
-// nomes existem — e o nome e o argumento. Um mapa de pontos anonimos nao
-// explica por que alguem convidaria a familia.
+// O mapa da comunidade na home.
 //
-// Nomes proprios genericos de proposito: se fosse "Papai" e "Vovo" ficaria
-// fofo e falso, e se fosse gente real seria pior.
+// A primeira versao era sete bolinhas num grid: bonito e mudo. Um mapa da
+// comunidade so vale a pena se mostrar a DINAMICA do grupo, e nao a existencia
+// dele. Tres coisas fazem isso aqui:
+//
+// 1. Os quadrantes tem nome. Sem isso um ponto no canto superior direito nao
+//    quer dizer nada, e o mapa e decoracao.
+// 2. O territorio: o poligono que envolve o grupo. E o que se ve primeiro —
+//    "a minha familia ocupa este pedaco" — e e a informacao mais politica que
+//    existe aqui.
+// 3. A regua embaixo, com as mesmas pessoas na escala de 1 a 100. E ela que
+//    transforma "estamos espalhados" em "vamos de 8 a 83".
+const TURMA = [
+  { nome: 'Marina', x: 26, y: 70, n: 12, eu: true },
+  { nome: 'Ana',    x: 19, y: 34, n: 21 },
+  { nome: 'Beto',   x: 45, y: 55, n: 46 },
+  { nome: 'Dedé',   x: 60, y: 44, n: 58 },
+  { nome: 'Gil',    x: 55, y: 20, n: 63 },
+  { nome: 'Eva',    x: 74, y: 66, n: 71 },
+  { nome: 'Carla',  x: 82, y: 30, n: 86 },
+]
+
+const QUADRANTES = [
+  { t: 'esquerda autoritária', x: 6,  y: 11, anc: 'start' },
+  { t: 'direita autoritária',  x: 94, y: 11, anc: 'end' },
+  { t: 'esquerda libertária',  x: 6,  y: 86, anc: 'start' },
+  { t: 'direita libertária',   x: 94, y: 86, anc: 'end' },
+]
+
 export function MapaExemplo({ className = '' }) {
-  const pessoas = [
-    { nome: 'Marina', x: 24, y: 68, eu: true },
-    { nome: 'Ana',    x: 17, y: 30 },
-    { nome: 'Beto',   x: 46, y: 52 },
-    { nome: 'Carla',  x: 79, y: 27 },
-    { nome: 'Dedé',   x: 62, y: 41 },
-    { nome: 'Eva',    x: 71, y: 74 },
-    { nome: 'Gil',    x: 52, y: 19 },
-  ]
+  const casco = envolver(TURMA)
+  const ns = TURMA.map(p => p.n)
+  const menor = Math.min(...ns), maior = Math.max(...ns)
+
   return (
-    <svg viewBox="0 0 100 78" className={`w-full ${className}`} role="img"
-         aria-label="Exemplo de mapa de comunidade com sete pessoas">
-      <line x1="50" y1="4" x2="50" y2="74" stroke="#e4e4e4" strokeWidth="0.4" />
-      <line x1="4" y1="39" x2="96" y2="39" stroke="#e4e4e4" strokeWidth="0.4" />
-      {[25, 75].map(v => (
-        <line key={v} x1={v} y1="4" x2={v} y2="74" stroke="#f2f2f2" strokeWidth="0.35" />
-      ))}
-      {[19.5, 58.5].map(v => (
-        <line key={v} x1="4" y1={v} x2="96" y2={v} stroke="#f2f2f2" strokeWidth="0.35" />
-      ))}
+    <div className={className}>
+      <svg viewBox="0 0 100 96" className="w-full" role="img"
+           aria-label="Exemplo de comunidade: sete pessoas espalhadas pelo mapa político">
+        {/* Grade discreta: estrutura sem competir com o territorio. */}
+        {[25, 50, 75].map(v => (
+          <g key={v}>
+            <line x1={v} y1="4" x2={v} y2="92" stroke="#e9e9e9" strokeWidth={v === 50 ? 0.5 : 0.3} />
+            <line x1="4" y1={v * 0.88 + 4} x2="96" y2={v * 0.88 + 4}
+                  stroke="#e9e9e9" strokeWidth={v === 50 ? 0.5 : 0.3} />
+          </g>
+        ))}
 
-      {pessoas.map(p => (
-        <g key={p.nome}>
-          {p.eu && <circle cx={p.x} cy={p.y} r="4.6" fill="none" stroke="#0a0a0b"
-                           strokeWidth="0.5" opacity="0.3" />}
-          <circle cx={p.x} cy={p.y} r="2.1" fill={p.eu ? '#0a0a0b' : '#fff'}
-                  stroke="#0a0a0b" strokeWidth="0.8" />
-          {/* Nome a esquerda na metade direita, senao vaza da caixa. */}
-          <text x={p.x + (p.x > 62 ? -3.4 : 3.4)} y={p.y + 1.2}
-                textAnchor={p.x > 62 ? 'end' : 'start'}
-                fontSize="3.6" fontWeight={p.eu ? 700 : 500} fill="#0a0a0b">
-            {p.nome}
-          </text>
-        </g>
-      ))}
+        {QUADRANTES.map(q => (
+          <text key={q.t} x={q.x} y={q.y} fontSize="3" fill="#a3a3a8"
+                textAnchor={q.anc} letterSpacing="0.3">{q.t}</text>
+        ))}
 
-      <text x="4" y="77" fontSize="3" fill="#8a8a8f">Estado</text>
-      <text x="96" y="77" fontSize="3" fill="#8a8a8f" textAnchor="end">mercado</text>
-      <text x="4" y="7" fontSize="3" fill="#8a8a8f">ordem</text>
-    </svg>
+        {/* O territorio do grupo. E a primeira coisa que o olho pega, e a
+            unica que responde "como a minha gente pensa" de uma vez. */}
+        <polygon points={casco.map(p => `${p.x},${p.y}`).join(' ')}
+                 fill="#0a0a0b" fillOpacity="0.055"
+                 stroke="#0a0a0b" strokeOpacity="0.2" strokeWidth="0.45"
+                 strokeLinejoin="round" />
+
+        {TURMA.map(p => (
+          <g key={p.nome}>
+            {p.eu && (
+              <circle cx={p.x} cy={p.y} r="5" fill="none"
+                      stroke="#0a0a0b" strokeWidth="0.5" opacity="0.3" />
+            )}
+            <circle cx={p.x} cy={p.y} r="2.4" fill={p.eu ? '#0a0a0b' : '#fff'}
+                    stroke="#0a0a0b" strokeWidth="1" />
+            <text x={p.x + (p.x > 60 ? -4 : 4)} y={p.y + 1.3}
+                  textAnchor={p.x > 60 ? 'end' : 'start'}
+                  fontSize="4.2" fontWeight={p.eu ? 700 : 500} fill="#0a0a0b"
+                  stroke="#fff" strokeWidth="1.1" paintOrder="stroke">
+              {p.nome}
+            </text>
+          </g>
+        ))}
+
+        <text x="4" y="94" fontSize="3.2" fill="#5b5f6b">Estado coordena</text>
+        <text x="96" y="94" fontSize="3.2" fill="#5b5f6b" textAnchor="end">mercado coordena</text>
+      </svg>
+
+      {/* A regua transforma "estamos espalhados" em um numero. */}
+      <div className="mt-4 border-t border-borda pt-4">
+        <div className="relative h-8">
+          <div className="absolute inset-x-0 top-3 h-1 rounded-full bg-borda/60" />
+          {/* A faixa e o argumento: mostra de uma vez o quanto a turma se
+              espalha. Em cinza fraco ela sumia e a regua virava so tracinhos. */}
+          <div className="absolute top-3 h-1 rounded-full bg-tinta/45"
+               style={{ left: `${menor}%`, width: `${maior - menor}%` }} />
+          {TURMA.map(p => (
+            <div key={p.nome}
+                 className={`absolute top-1.5 h-4 w-[3px] -translate-x-1/2 rounded-full ${
+                   p.eu ? 'bg-tinta' : 'bg-tinta/45'}`}
+                 style={{ left: `${p.n}%` }} title={`${p.nome}: ${p.n}`} />
+          ))}
+        </div>
+        <div className="flex justify-between text-[11px] text-grafia">
+          <span>1 · extrema esquerda</span>
+          <span className="font-medium text-tinta">
+            desta turma, de {menor} a {maior}
+          </span>
+          <span>extrema direita · 100</span>
+        </div>
+      </div>
+    </div>
   )
+}
+
+// Casco convexo (monotone chain). Sem ele o "territorio" viraria um poligono
+// com os pontos na ordem em que foram escritos, que se auto-cruza e parece
+// erro de renderizacao.
+function envolver(pontos) {
+  const ps = [...pontos].map(p => ({ x: p.x, y: p.y }))
+    .sort((a, b) => a.x - b.x || a.y - b.y)
+  if (ps.length < 3) return ps
+
+  const cruz = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
+  const meia = (lista) => {
+    const saida = []
+    for (const p of lista) {
+      while (saida.length >= 2 && cruz(saida.at(-2), saida.at(-1), p) <= 0) saida.pop()
+      saida.push(p)
+    }
+    saida.pop()
+    return saida
+  }
+  return [...meia(ps), ...meia([...ps].reverse())]
 }

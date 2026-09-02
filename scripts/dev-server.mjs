@@ -447,7 +447,7 @@ const rotas = {
   // No modo demo o admin nao autentica: nao existe Supabase Auth aqui. Em
   // producao cada Function confere o token contra ADMIN_EMAILS.
   perfil: (_body, _q, res) => json(res, {
-    email: 'voce@exemplo.com', full_name: '', display_name: '', phone: '',
+    email: 'voce@exemplo.com', full_name: 'Andre Akkari', display_name: 'Andre', phone: '',
     birth_year: null, city: '', uf: '', education: '', occupation: '',
     desde: new Date().toISOString(), questionarios: sessoes.size,
   }),

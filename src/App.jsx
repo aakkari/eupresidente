@@ -19,7 +19,7 @@ import Perfis from './pages/admin/Perfis.jsx'
 import AdminContato from './pages/admin/Contato.jsx'
 
 export default function App() {
-  const { token } = useAuth()
+  const { token, nome } = useAuth()
 
   return (
     <div className="min-h-screen">
@@ -29,9 +29,11 @@ export default function App() {
             Eu Presidente
           </Link>
           <nav className="flex items-center gap-2">
+            {/* Logado, o cabecalho mostra o nome da pessoa. "Minha conta" so
+                aparece para quem ainda nao tem uma. */}
             <Link to={token ? '/conta' : '/entrar'}
-                  className="rounded-full border border-borda bg-white px-4 py-2 text-xs font-medium transition hover:border-tinta">
-              Minha conta
+                  className="max-w-[13rem] truncate rounded-full border border-borda bg-white px-4 py-2 text-xs font-medium transition hover:border-tinta">
+              {token ? (nome || 'Minha conta') : 'Minha conta'}
             </Link>
           </nav>
         </div>
