@@ -266,8 +266,8 @@ const rotas = {
 
   'admin-assinantes': (_body, _q, res) => json(res, { assinantes: [] }),
 
-  'admin-pessoas': (_body, q, res) => {
-    const pessoas = comunidadeDemo.membros().map((m, i) => ({
+  'admin-usuarios': (_body, q, res) => {
+    const usuarios = comunidadeDemo.membros().map((m, i) => ({
       id: m.user_id, email: `${m.nome.split(' ')[0].toLowerCase()}@exemplo.com`,
       criada_em: m.quando, ultimo_acesso: m.quando, confirmada: i !== 3,
       nome: m.nome, uf: ['SP','RJ','MG','BA','RS','PE','SP','PR','SC'][i] ?? null,
@@ -281,11 +281,11 @@ const rotas = {
       mensagens: i === 1 ? 2 : 0, mensagens_abertas: i === 1 ? 1 : 0,
       comunidades: i < 4 ? 1 : 0,
     }))
-    if (!q.get('pessoa')) return json(res, { pessoas })
-    const p = pessoas.find(x => x.id === q.get('pessoa')) ?? pessoas[0]
+    if (!q.get('usuario')) return json(res, { usuarios })
+    const p = usuarios.find(x => x.id === q.get('usuario')) ?? usuarios[0]
     const m = comunidadeDemo.membros().find(x => x.user_id === p.id) ?? comunidadeDemo.membros()[0]
     json(res, {
-      pessoa: { id: p.id, email: p.email, criada_em: p.criada_em, ultimo_acesso: p.ultimo_acesso,
+      usuario: { id: p.id, email: p.email, criada_em: p.criada_em, ultimo_acesso: p.ultimo_acesso,
         confirmada: p.confirmada,
         perfil: { full_name: p.nome, display_name: p.nome.split(' ')[0], phone: '(11) 90000-0000',
                   birth_year: p.nascimento, city: p.cidade, uf: p.uf,

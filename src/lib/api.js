@@ -90,8 +90,8 @@ export const previaConvite = (convite) =>
 export const acaoComunidade = (token, corpo) =>
   chamar('comunidade', { metodo: 'POST', corpo, token })
 
-export const adminPessoas = (token, pessoa) =>
-  chamar(`admin-pessoas${pessoa ? `?pessoa=${encodeURIComponent(pessoa)}` : ''}`, { token })
+export const adminUsuarios = (token, usuario) =>
+  chamar(`admin-usuarios${usuario ? `?usuario=${encodeURIComponent(usuario)}` : ''}`, { token })
 
 export const adminPopulacao = (token) => chamar('admin-populacao', { token })
 

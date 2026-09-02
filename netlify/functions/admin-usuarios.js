@@ -2,23 +2,23 @@ import { exigirAdmin } from './_lib/auth.js'
 import { json, erro, protegido } from './_lib/http.js'
 import { posicaoPolitica } from './_lib/scoring.js'
 
-// Pessoas: quem se cadastrou, e o que cada uma respondeu.
+// Usuarios: quem se cadastrou, e o que cada um respondeu.
 //
-// Sem ?pessoa, devolve a lista. Com ?pessoa=<uuid>, devolve o histórico
-// completo de uma — que e o "analisar resultado um por um" do pedido.
+// Sem ?usuario, devolve a lista. Com ?usuario=<uuid>, devolve o historico
+// completo de um — que e o "analisar resultado um por um" do pedido.
 export default protegido(async (req) => {
   const auth = await exigirAdmin(req)
   if (!auth.ok) return erro(auth.motivo, 401)
   const sb = auth.sb
 
-  const alvo = new URL(req.url).searchParams.get('pessoa')
+  const alvo = new URL(req.url).searchParams.get('usuario')
   return alvo ? uma(sb, alvo) : todas(sb)
 })
 
 async function todas(sb) {
   const users = await usuarios(sb)
   const ids = users.map(u => u.id)
-  if (!ids.length) return json({ pessoas: [] })
+  if (!ids.length) return json({ usuarios: [] })
 
   const [{ data: perfis }, { data: sessoes }, { data: assinaturas }, { data: familias },
          { data: pagamentos }, { data: mensagens }, { data: membros }] =
@@ -71,7 +71,7 @@ async function todas(sb) {
   }
 
   return json({
-    pessoas: users.map(u => {
+    usuarios: users.map(u => {
       const r = ultimo.get(u.id)
       const a = porAssinatura[u.id]
       const p = porPerfil[u.id]
@@ -100,7 +100,7 @@ async function todas(sb) {
 async function uma(sb, uid) {
   const users = await usuarios(sb)
   const user = users.find(u => u.id === uid)
-  if (!user) return erro('pessoa nao encontrada', 404)
+  if (!user) return erro('usuario nao encontrado', 404)
 
   const [{ data: perfil }, { data: sessoes }, { data: assinatura }, { data: familias }] =
     await Promise.all([
@@ -139,7 +139,7 @@ async function uma(sb, uid) {
   for (const r of respostas ?? []) (porSessao[r.session_id] ??= []).push(new Date(r.answered_at))
 
   return json({
-    pessoa: {
+    usuario: {
       id: user.id, email: user.email, criada_em: user.created_at,
       ultimo_acesso: user.last_sign_in_at, confirmada: Boolean(user.email_confirmed_at),
       perfil: perfil ?? null,

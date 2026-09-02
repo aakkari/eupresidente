@@ -30,9 +30,9 @@ export default function AdminLayout() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-8">
-      <div className="mb-6 flex items-center justify-between border-b border-borda pb-4">
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-x-4 gap-y-2 border-b border-borda pb-4">
         <nav className="flex flex-wrap gap-1">
-          {[['pessoas', 'Pessoas'], ['populacao', 'População'], ['comunidades', 'Comunidades'],
+          {[['usuarios', 'Usuários'], ['populacao', 'População'], ['comunidades', 'Comunidades'],
             ['perguntas', 'Perguntas'], ['perfis', 'Perfis'], ['metricas', 'Métricas'],
             ['plano', 'Plano'], ['assinantes', 'Assinantes'], ['contato', 'Contato']].map(([to, label]) => (
             <NavLink key={to} to={to}
@@ -42,7 +42,7 @@ export default function AdminLayout() {
             </NavLink>
           ))}
         </nav>
-        <div className="flex items-center gap-3 text-xs text-grafia">
+        <div className="flex shrink-0 items-center gap-3 pt-1.5 text-xs text-grafia">
           <span>{sessao.user.email}</span>
           <button onClick={() => getSupabase().auth.signOut()} className="hover:text-tinta">sair</button>
         </div>

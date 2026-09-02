@@ -12,7 +12,7 @@ import Perguntas from './pages/admin/Perguntas.jsx'
 import Metricas from './pages/admin/Metricas.jsx'
 import Plano from './pages/admin/Plano.jsx'
 import Assinantes from './pages/admin/Assinantes.jsx'
-import Pessoas from './pages/admin/Pessoas.jsx'
+import Usuarios from './pages/admin/Usuarios.jsx'
 import Populacao from './pages/admin/Populacao.jsx'
 import Comunidades from './pages/admin/Comunidades.jsx'
 import Perfis from './pages/admin/Perfis.jsx'
@@ -47,12 +47,12 @@ export default function App() {
         <Route path="/contato" element={<Contato />} />
         <Route path="/meus" element={<Navigate to="/conta" replace />} />
         <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<Navigate to="pessoas" replace />} />
+          <Route index element={<Navigate to="usuarios" replace />} />
           <Route path="perguntas" element={<Perguntas />} />
           <Route path="metricas" element={<Metricas />} />
           <Route path="plano" element={<Plano />} />
           <Route path="assinantes" element={<Assinantes />} />
-          <Route path="pessoas" element={<Pessoas />} />
+          <Route path="usuarios" element={<Usuarios />} />
           <Route path="populacao" element={<Populacao />} />
           <Route path="comunidades" element={<Comunidades />} />
           <Route path="perfis" element={<Perfis />} />
