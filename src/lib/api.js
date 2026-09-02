@@ -113,3 +113,8 @@ export const adminSalvarPerfil = (token, corpo) =>
   chamar('admin-perfis', { metodo: 'PATCH', corpo, token })
 
 export const adminResumo = (token) => chamar('admin-resumo', { token })
+
+export const baixarMeusDados = (token) => chamar('conta-apagar', { token })
+
+export const apagarConta = (token, confirmacao) =>
+  chamar('conta-apagar', { metodo: 'DELETE', corpo: { confirmacao }, token })

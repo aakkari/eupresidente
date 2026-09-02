@@ -3,7 +3,7 @@ import { Link, Navigate } from 'react-router-dom'
 import { useAuth, esquecerNome } from '../lib/useAuth.js'
 import {
   meusResultados, meuPerfil, salvarPerfil, apagarResultado,
-  minhaAssinatura, assinar, cancelarAssinatura,
+  minhaAssinatura, assinar, cancelarAssinatura, baixarMeusDados, apagarConta,
 } from '../lib/api.js'
 import Evolucao from '../components/Evolucao.jsx'
 import Compartilhar from '../components/Compartilhar.jsx'
@@ -85,7 +85,113 @@ export default function Conta() {
              sub="Cidade, estado, ano de nascimento, escolaridade e ocupação são o que permite comparar seu perfil com o de quem se parece com você. Nunca pedimos CPF ou documento: identificador único somado a opinião política é o pior tipo de base para existir.">
         <FormPerfil token={token} perfil={perfil} aoSalvar={setPerfil} />
       </Bloco>
+
+      <SairDeVez token={token} />
     </div>
+  )
+}
+
+// ------------------------------------------------------------------- encerrar
+
+// Levar os dados e apagar a conta. As duas coisas na mesma seção de propósito:
+// quem vai apagar precisa poder baixar antes, e esconder isso num rodapé de
+// termos é o tipo de coisa que a LGPD chama de dificultar o exercício do
+// direito.
+function SairDeVez({ token }) {
+  const [aberto, setAberto] = useState(false)
+  const [texto, setTexto] = useState('')
+  const [ocupado, setOcupado] = useState(false)
+  const [erro, setErro] = useState(null)
+
+  async function baixar() {
+    setOcupado(true); setErro(null)
+    try {
+      const dados = await baixarMeusDados(token)
+      const url = URL.createObjectURL(
+        new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' }))
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `eu-presidente-meus-dados-${new Date().toISOString().slice(0, 10)}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (e) { setErro(e.message) }
+    setOcupado(false)
+  }
+
+  async function apagar() {
+    setOcupado(true); setErro(null)
+    try {
+      await apagarConta(token, texto)
+      // Sem sessão para limpar depois: a conta não existe mais. Recarregar na
+      // raiz é o que sobra, e é o certo — a pessoa pediu para sumir.
+      window.location.href = '/'
+    } catch (e) { setErro(e.message); setOcupado(false) }
+  }
+
+  return (
+    <Bloco titulo="Seus dados são seus">
+      <div className="cartao p-5">
+        <p className="max-w-2xl text-sm leading-relaxed text-grafia">
+          Você pode levar tudo o que é seu num arquivo, e pode apagar a conta quando quiser.
+          Não precisa pedir, nem explicar por quê.
+        </p>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button onClick={baixar} disabled={ocupado} className="botao-leve">
+            Baixar meus dados
+          </button>
+          {!aberto && (
+            <button onClick={() => setAberto(true)} className="botao-leve">
+              Apagar minha conta
+            </button>
+          )}
+        </div>
+
+        {erro && <p className="mt-3 text-sm text-red-700">{erro}</p>}
+
+        {aberto && (
+          <div className="mt-5 border-t border-borda pt-5">
+            <p className="text-sm font-medium">Apagar a conta é definitivo.</p>
+
+            <ul className="mt-2 max-w-2xl space-y-1.5 text-sm leading-relaxed text-grafia">
+              <li>• Somem suas respostas, seus resultados, seu perfil e sua assinatura.</li>
+              <li>• Os links de resultado que você já compartilhou param de abrir.</li>
+              <li>• Você sai das comunidades. As que você criou continuam existindo com quem
+                ficou — a mais antiga do grupo passa a ser dona. Só some a que ficaria vazia.</li>
+              <li>• <strong className="text-tinta">Não dá para desfazer</strong>, e não temos
+                cópia para restaurar.</li>
+            </ul>
+
+            {/* Nao prometer revogacao: nao existe tela para isso, e mesmo que
+                existisse ela nao alcancaria a linha ja gravada — que e o ponto
+                do desenho, nao um defeito dele. */}
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-grafia">
+              O que não some é a linha da base de pesquisa, se você autorizou no fim do
+              questionário. Ela é anônima e não guarda nenhuma ligação com a sua conta: não
+              existe "a sua" lá para localizar — nem para nós. É a mesma decisão que impede
+              qualquer pessoa de ligar aquelas respostas ao seu nome, e ela vale nos dois
+              sentidos.
+            </p>
+
+            <label className="mt-5 block">
+              <span className="rotulo">Digite APAGAR para confirmar</span>
+              <input className="campo mt-1.5 max-w-xs" value={texto}
+                     onChange={e => setTexto(e.target.value)} placeholder="APAGAR" />
+            </label>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button onClick={apagar} className="botao-forte"
+                      disabled={ocupado || texto.trim().toUpperCase() !== 'APAGAR'}>
+                {ocupado ? 'Apagando...' : 'Apagar minha conta para sempre'}
+              </button>
+              <button onClick={() => { setAberto(false); setTexto('') }} className="botao-leve">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </Bloco>
   )
 }
 

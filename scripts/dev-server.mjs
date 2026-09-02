@@ -247,6 +247,17 @@ const rotas = {
     plano: { ...config.assinatura, a_venda: false },
   }),
 
+  'conta-apagar': (body, _q, res) => {
+    if (body?.confirmacao !== undefined) {
+      if (String(body.confirmacao).trim().toUpperCase() !== 'APAGAR')
+        return json(res, { erro: 'digite APAGAR para confirmar' }, 400)
+      sessoes.clear()
+      return json(res, { ok: true })
+    }
+    json(res, { gerado_em: new Date().toISOString(),
+      conta: { email: 'voce@exemplo.com' }, questionarios: [], observacao: 'demo' })
+  },
+
   'resultado-apagar': (body, _q, res) => {
     sessoes.delete(body?.token)
     json(res, { ok: true })
