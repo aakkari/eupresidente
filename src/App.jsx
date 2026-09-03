@@ -48,11 +48,13 @@ export default function App() {
             Eu Presidente
           </Link>
           <nav className="flex items-center gap-2">
-            {/* Logado, o cabecalho mostra o nome da pessoa. "Minha conta" so
-                aparece para quem ainda nao tem uma. */}
+            {/* Logado, o cabecalho mostra o nome da pessoa. Deslogado, ele
+                nomeia as duas acoes possiveis: "Minha conta" prometia uma
+                conta que a pessoa ainda nao tem, e nao dizia que dali sai
+                tanto entrar quanto se cadastrar. */}
             <Link to={token ? '/conta' : '/entrar'}
                   className="max-w-[13rem] truncate rounded-full border border-borda bg-white px-4 py-2 text-xs font-medium transition hover:border-tinta">
-              {token ? (nome || 'Minha conta') : 'Minha conta'}
+              {token ? (nome || 'Minha conta') : 'Entrar · Registre-se'}
             </Link>
           </nav>
         </div>
