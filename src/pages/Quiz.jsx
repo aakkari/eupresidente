@@ -129,7 +129,19 @@ export default function Quiz() {
     // custo de uma requisicao a mais e menor que o de perder uma resposta.
     const todas = Object.entries(respostas).map(([question_id, value]) =>
       ({ question_id, value, answered_at: tempos[question_id] }))
-    if (todas.length) await salvarRespostas(sessao.token, todas)
+    if (todas.length) {
+      // "ja encerrada" nao e falha aqui: save_responses so aceita sessao
+      // in_progress, entao esse erro significa que estas respostas ja
+      // entraram e a sessao ja foi fechada — por outra aba aberta no mesmo
+      // questionario, ou por um clique anterior que foi ate o fim. Nao ha o
+      // que reenviar; ha o que continuar. Antes isto virava um texto
+      // vermelho de banco de dados em cima do formulario de conta, e a
+      // pessoa ficava sem entender e sem saida.
+      await salvarRespostas(sessao.token, todas).catch((e) => {
+        if (!/ja encerrada|nao encontrada/i.test(e.message)) throw e
+      })
+    }
+    // Idempotente: com a sessao ja fechada, devolve o resultado que existe.
     await finalizarSessao(sessao.token, {
       consentimento_pesquisa: modo === 'long' ? consentimento : false,
       policy_version: 'v1',
@@ -174,7 +186,13 @@ export default function Quiz() {
       limparRascunho()
       ir(`/resultado?token=${sessao.token}${confirmar ? '&conta=confirmar' : ''}`)
     } catch (e) {
-      setErro(e.message); setEnviando(false)
+      // Sessao que nao existe mais no banco nao tem conserto por reenvio, e
+      // "sessao nao encontrada" nao diz a ninguem o que fazer. A saida esta
+      // logo abaixo, nesta mesma tela.
+      setErro(/sessao nao encontrada|ja encerrada/i.test(e.message)
+        ? 'Este questionário já foi encerrado — pode ter sido finalizado em outra aba. Toque em "começar um novo questionário", logo abaixo.'
+        : e.message)
+      setEnviando(false)
     }
   }
 
