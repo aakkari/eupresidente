@@ -10,8 +10,13 @@ export function emPortugues(msg) {
   // O Supabase recusa senha que aparece em vazamentos conhecidos, e devolve
   // "Password is known to be weak and easy to guess". Em ingles, num campo de
   // senha, isso parece erro do site — a pessoa tenta de novo igual e desiste.
+  //
+  // A traducao nao repete o motivo. Dizer "essa senha ja apareceu em
+  // vazamentos" soa como se tivessemos ido olhar alguma coisa da pessoa, e no
+  // instante em que ela esta abrindo conta isso assusta sem ajudar em nada —
+  // o que ela precisa saber e o que fazer agora, nao de onde veio a recusa.
   if (/known to be weak|easy to guess|weak.?password/i.test(m))
-    return 'Essa senha é fácil demais de adivinhar — ela já apareceu em vazamentos por aí. Escolha outra.'
+    return 'Por segurança, escolha uma senha mais difícil: misture letras e números e evite sequências ou palavras comuns.'
   if (/should contain at least one character of each|does not meet.*requirements/i.test(m))
     return 'Essa senha não atende às regras: use letras e números.'
   const curta = m.match(/at least (\d+) characters/i)
